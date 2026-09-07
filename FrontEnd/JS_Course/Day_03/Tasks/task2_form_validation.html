@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic Form Validation</title>
+</head>
+<body>
+    <h2>Task 2: Form Validation</h2>
+    <form id="myForm">
+        <input type="text" id="name" placeholder="Name"><br>
+        <input type="email" id="email" placeholder="Email"><br>
+        <input type="tel" id="phone" placeholder="Phone"><br>
+        <button onclick="showAllData()">Submit</button>
+        <p id="errorMsg" style="color:red;"></p>
+    </form>
+
+
+    <script>
+    function showAllData() {
+            let name = document.getElementById("name").value;
+            let email = document.getElementById("email").value;
+            let phone = document.getElementById("phone").value;
+
+            if(!name || !age || !email){
+                document.getElementById("errorMsg").innerText =
+                `Name: ${name} | Email: ${email} | Phone:${phone}`;
+            }
+            document.getElementById("errorMsg").innerText = `Please Fill in all fields..`;
+        }
+    </script>
+</body>
+</html>

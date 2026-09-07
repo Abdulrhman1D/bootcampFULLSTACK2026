@@ -1,0 +1,25 @@
+﻿@model IList<Product>
+
+<div class="container">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var emp in Model)
+            {
+                <tr>
+                    <td>@emp.Id</td>
+                    <td>@emp.Name</td>
+                    <td>@emp.Price</td>
+                    <td>@emp.Category</td>
+                </tr>
+            }     
+        </tbody>
+    </table>
+</div>
