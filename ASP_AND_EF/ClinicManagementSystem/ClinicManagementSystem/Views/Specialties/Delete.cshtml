@@ -1,0 +1,30 @@
+﻿@model Specialty
+@{
+    ViewData["Title"] = "Delete Specialty";
+}
+
+
+<div class="container">
+    <h1>Delete Specialty</h1>
+    <form asp-action="Delete" method="post">
+
+       
+
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" readonly />
+
+
+        </div>
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <textarea asp-for="Name" class="form-control" readonly></textarea>
+             
+            <div class="form-group">
+                <input type="submit" value="Delete" class="btn btn-danger" />
+            </div>
+        </form>
+        <div>
+            <a asp-action="Index">Back to List</a>
+        </div>
+    </div>

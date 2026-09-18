@@ -1,0 +1,46 @@
+﻿@model Appointment
+@{
+    ViewData["Title"] = "Create Appointment";
+}
+<div class="container">
+    <h1>Create Appointment</h1>
+    <form asp-action="Create" method="post">
+        <div class="form-group">
+            <div class="text-danger" asp-validation-summary="All">
+            </div>
+
+            <label>Patient</label>
+            <select asp-for="PatientId"
+                    asp-items="ViewBag.Patients"
+                    class="form-control">
+                <option value="">Select Patient</option>
+            </select>
+            <label>Doctor</label>
+            <select asp-for="DoctorId"
+                    asp-items="ViewBag.Doctors"
+                    class="form-control">
+                <option value="">Select Doctor</option>
+            </select>
+            <label asp-for="AppointmentDate">Appointment Date</label>
+            <input asp-for="AppointmentDate"
+                   type="datetime-local"
+                   class="form-control" />
+            <label class="control-label">Status</label>
+            <input asp-for="Status" class="form-control" />
+            <label class="control-label">Notes</label>
+            <input asp-for="Notes" class="form-control" />
+        </div>
+        <br />
+
+        <div class="form-group">
+            <input type="submit" value="Create" class="btn btn-primary" />
+        </div>
+    </form>
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

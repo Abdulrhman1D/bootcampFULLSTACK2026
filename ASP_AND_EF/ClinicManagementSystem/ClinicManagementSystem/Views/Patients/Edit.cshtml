@@ -1,0 +1,45 @@
+﻿@model Patient
+@{
+    ViewData["Title"] = "Edit Patient";
+}
+
+
+<div class="container">
+    <h1>Edit Patients</h1>
+    <form asp-action="Edit" method="post">
+
+        <div class="text-danger" asp-validation-summary="All">
+        </div>
+
+       
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span class="text-danger" asp-validation-for="Name"></span>
+
+        </div>
+        <div class="form-group">
+            <label asp-for="Phone" class="control-label"></label>
+            <textarea asp-for="Phone" class="form-control"></textarea>
+            <span class="text-danger" asp-validation-for="Phone"></span>
+        </div>
+        <label class="control-label">Gender</label>
+        <div>
+            <input type="radio" asp-for="Gender" value="Male" id="male" />
+            <label for="male">Male</label>
+
+            <input type="radio" asp-for="Gender" value="Female" id="female" />
+            <label for="female">Female</label>
+        </div>
+        <span class="text-danger" asp-validation-for="Gender"></span>
+        
+
+        
+        <div class="form-group">
+            <input type="submit" value="Update" class="btn btn-warning" />
+        </div>
+    </form>
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</div>

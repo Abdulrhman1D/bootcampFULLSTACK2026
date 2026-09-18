@@ -10,6 +10,6 @@
 
         public int SpecialtyId { get; set; }
 
-        public Specialty Specialty { get; set; }
+        public Specialty? Specialty { get; set; }
     }
 }
