@@ -1,0 +1,47 @@
+﻿@model Patient
+
+@{
+    ViewData["Title"] = "Delete Patient";
+}
+
+<div class="container">
+    <h1>Delete Patient</h1>
+
+    <p>Are you sure you want to delete this patient?</p>
+
+    <form asp-action="Delete" method="post">
+        <div asp-validation-summary="All" class="text-danger"></div>
+         
+        <input asp-for="Id" type="hidden" />
+     
+        <div class="form-group">
+            <label asp-for="Name"></label>
+            <input asp-for="Name" class="form-control" readonly />
+        </div>
+     
+        <div class="form-group">
+            <label asp-for="Phone"></label>
+            <input asp-for="Phone" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="DateOfBirth">Date of Birth</label>
+            <input asp-for="DateOfBirth"
+                   type="date"
+                   class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Gender"></label>
+            <input asp-for="Gender" class="form-control" readonly />
+        </div>
+
+        <br />
+
+        <input type="submit" value="Delete" class="btn btn-danger" />
+    </form>
+
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</div>
