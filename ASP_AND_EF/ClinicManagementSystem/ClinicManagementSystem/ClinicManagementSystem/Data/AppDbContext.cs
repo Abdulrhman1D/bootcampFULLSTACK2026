@@ -20,5 +20,7 @@ namespace ClinicManagementSystem.Data
         public DbSet<Appointment> Appointments { get; set; }
 
         public DbSet<User> Users { get; set; }
+
+        public DbSet<Job> Jobs { get; set; }
     }
 }

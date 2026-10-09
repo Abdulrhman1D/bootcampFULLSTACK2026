@@ -1,8 +1,13 @@
-﻿namespace ClinicManagementSystem.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace ClinicManagementSystem.Models
 {
+    [Index(nameof(Uuid), IsUnique = true)]
     public class Appointment
     {
         public int Id { get; set; }
+
+        public string Uuid { get; set; } = Guid.NewGuid().ToString();
 
         public int PatientId { get; set; }
         public Patient? Patient { get; set; }

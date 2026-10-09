@@ -1,4 +1,5 @@
 ﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Dtos;
 using ClinicManagementSystem.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,15 +15,30 @@ namespace ClinicManagementSystem.Controllers
         {
             _db = db;
         }
+
         public ActionResult Index()
         {
             //Entity Framework Approach
-            //IEnumerable<Doctor> Doctors = _db.Doctors.ToList();
-            var doctors = _db.Doctors
-            .Include(d => d.Specialty)
-            .ToList();
+
+            IEnumerable <DoctorDto> doctors = _db.Doctors.Select(e => new DoctorDto
+            {
+                Id = e.Id,
+                Name = e.Name,
+                Phone = e.Phone,
+                SpecialtyName = e.Specialty != null ? e.Specialty.Name : null
+            }).ToList();
             return View(doctors);
         }
+
+        //public ActionResult Index()
+        //{
+        //    //Entity Framework Approach
+        //    //IEnumerable<Doctor> Doctors = _db.Doctors.ToList();
+        //    var doctors = _db.Doctors
+        //    .Include(d => d.Specialty)
+        //    .ToList();
+        //    return View(doctors);
+        //}
         // =========================
         // Create GET
         // =========================

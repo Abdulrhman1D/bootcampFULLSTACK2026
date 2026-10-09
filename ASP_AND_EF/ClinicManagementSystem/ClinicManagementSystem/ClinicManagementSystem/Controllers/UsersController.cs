@@ -76,6 +76,81 @@ namespace ClinicManagementSystem.Controllers
 
             return View(user);
         }
+        // =========================
+        // Edit GET
+        // =========================
+        public IActionResult Edit(int id)
+        {
+            var user = _db.Users.Find(id);
+
+            if (user == null)
+                return NotFound();
+
+            return View(user);
+        }
+
+
+        // =========================
+        // Edit POST
+        // =========================
+        [HttpPost]
+        public IActionResult Edit(User user)
+        {
+            if (ModelState.IsValid)
+            {
+                var oldUser = _db.Users.Find(user.Id);
+
+                if (oldUser == null)
+                    return NotFound();
+
+                oldUser.Name = user.Name;
+                oldUser.UserName = user.UserName;
+                oldUser.Email = user.Email;
+                oldUser.IsLocked = user.IsLocked;
+
+
+                if (!string.IsNullOrEmpty(user.Password))
+                {
+
+                    oldUser.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+                }
+
+                _db.SaveChanges();
+
+                return RedirectToAction("Index");
+            }
+
+            return View(user);
+        }
+
+        // =========================
+        // Delete GET
+        // =========================
+        public IActionResult Delete(int id)
+        {
+            var user = _db.Users.Find(id);
+
+            if (user == null)
+                return NotFound();
+
+            return View(user);
+        }
+
+        // POST
+        [HttpPost]
+        [ActionName("Delete")]
+        public IActionResult DeleteConfirm(int id)
+        {
+            var user = _db.Users.Find(id);
+
+            if (user == null)
+                return NotFound();
+
+            _db.Users.Remove(user);
+            _db.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
 
     }
 }

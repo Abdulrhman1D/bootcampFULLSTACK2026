@@ -48,7 +48,7 @@
                 <div class="sb-sidenav-menu">
                     <div class="nav">
                         <div class="sb-sidenav-menu-heading">Core</div>
-                        <a class="nav-link" href="index.html">
+                        <a class="nav-link" asp-controller="Appointments" asp-action="Index">
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                             Dashboard
                         </a>
@@ -64,17 +64,24 @@
                                 <a class="nav-link" asp-controller="Doctors" asp-action="Index">الأطباء</a>
                                 <a class="nav-link" asp-controller="Patients" asp-action="Index">المراجعين</a>
                                 <a class="nav-link" asp-controller="Specialties" asp-action="Index">التخصصات</a>
+                                <a class="nav-link" asp-controller="Jobs" asp-action="Index">الوظيفة</a>
                             </nav>
                         </div>
-                        <div class="sb-sidenav-menu-heading">
-                            User Management
-                        </div>
-
-                        <a class="nav-link"
-                           asp-controller="Users"
-                           asp-action="Index">
-                            Users
+                        <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts1" aria-expanded="false" aria-controls="collapseLayouts">
+                            <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                            إدارة المستخدمين
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                         </a>
+                        <div class="collapse" id="collapseLayouts1" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion1">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link"
+                                   asp-controller="Users"
+                                   asp-action="Index">
+                                    Users
+                                </a>
+                            </nav>
+                        </div>
+                        
 
                     </div>
                 </div>

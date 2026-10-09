@@ -4,6 +4,7 @@ using ClinicManagementSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ClinicManagementSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261008111521_AddJobs")]
+    partial class AddJobs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,18 +50,11 @@ namespace ClinicManagementSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Uuid")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("DoctorId");
 
                     b.HasIndex("PatientId");
-
-                    b.HasIndex("Uuid")
-                        .IsUnique();
 
                     b.ToTable("Appointments");
                 });
@@ -71,7 +67,7 @@ namespace ClinicManagementSystem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("JobId")
+                    b.Property<int>("JobId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -85,18 +81,11 @@ namespace ClinicManagementSystem.Migrations
                     b.Property<int>("SpecialtyId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Uuid")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("JobId");
 
                     b.HasIndex("SpecialtyId");
-
-                    b.HasIndex("Uuid")
-                        .IsUnique();
 
                     b.ToTable("Doctors");
                 });
@@ -113,14 +102,7 @@ namespace ClinicManagementSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Uuid")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("Uuid")
-                        .IsUnique();
 
                     b.ToTable("Jobs");
                 });
@@ -148,14 +130,7 @@ namespace ClinicManagementSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Uuid")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("Uuid")
-                        .IsUnique();
 
                     b.ToTable("Patients");
                 });
@@ -172,14 +147,7 @@ namespace ClinicManagementSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Uuid")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("Uuid")
-                        .IsUnique();
 
                     b.ToTable("Specialties");
                 });
@@ -211,14 +179,7 @@ namespace ClinicManagementSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Uuid")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("Uuid")
-                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -246,7 +207,9 @@ namespace ClinicManagementSystem.Migrations
                 {
                     b.HasOne("ClinicManagementSystem.Models.Job", "Job")
                         .WithMany()
-                        .HasForeignKey("JobId");
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ClinicManagementSystem.Models.Specialty", "Specialty")
                         .WithMany()

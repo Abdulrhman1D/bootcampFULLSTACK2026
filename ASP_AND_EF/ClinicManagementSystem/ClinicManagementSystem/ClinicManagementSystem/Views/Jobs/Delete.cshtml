@@ -1,0 +1,30 @@
+﻿@model Job
+
+@{
+    ViewData["Title"] = "Delete Job";
+}
+
+<div class="container">
+    <h1>Delete Job</h1>
+
+    <p>Are you sure you want to delete this Job?</p>
+
+    <form asp-action="Delete" method="post">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <input asp-for="Id" type="hidden" />
+
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" readonly />
+        </div>
+
+        <br />
+
+        <input type="submit" value="Delete" class="btn btn-danger" />
+    </form>
+
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+</div>

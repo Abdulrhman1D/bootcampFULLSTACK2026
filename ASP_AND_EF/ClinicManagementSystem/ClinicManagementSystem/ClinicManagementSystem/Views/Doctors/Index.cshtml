@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Doctor>
+﻿@using ClinicManagementSystem.Dtos
+@model IEnumerable<DoctorDto>
 
 <div class="container">
     <h2>Doctors</h2>
@@ -23,7 +24,7 @@
                     <td>@doctor.Id</td>
                     <td>@doctor.Name</td>
                     <td>@doctor.Phone</td>
-                    <td>@doctor.Specialty?.Name</td>
+                    <td>@doctor.SpecialtyName</td>
                     <td>
                         <a asp-action="Edit" asp-route-Id="@doctor.Id" class="btn btn-warning"> Edit  </a>
                         <a asp-action="Delete" asp-route-Id="@doctor.Id" class="btn btn-danger"> Delete  </a>

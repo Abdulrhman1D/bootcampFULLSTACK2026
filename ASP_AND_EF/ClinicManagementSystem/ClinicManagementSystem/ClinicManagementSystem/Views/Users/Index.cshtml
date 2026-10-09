@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Users";
+    int count = 1;
 }
 
 <div class="container">
@@ -20,10 +21,11 @@
                 <th>Name</th>
                 <th>Username</th>
                 <th>Email</th>
-                <th>Account Status</th>
+                <th>Status</th>
+                <th>Actiooonns</th>
             </tr>
         </thead>
-
+           
         <tbody>
             @foreach (var user in Model)
             {
@@ -42,7 +44,27 @@
                             <span class="text-success">Active</span>
                         }
                     </td>
+                    <td>
+                        <a asp-action="Details"
+                           asp-route-id="@user.Id"
+                           class="btn btn-info">
+                            Details
+                        </a>
+
+                        <a asp-action="Edit"
+                           asp-route-id="@user.Id"
+                           class="btn btn-warning">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@user.Id"
+                           class="btn btn-danger">
+                            Delete
+                        </a>
+                    </td>
                 </tr>
+                count++;
             }
         </tbody>
     </table>

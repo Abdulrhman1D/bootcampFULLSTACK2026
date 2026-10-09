@@ -1,0 +1,38 @@
+﻿@model IEnumerable<Job>
+
+<div class="container">
+
+    <h2>Jobs</h2>
+
+    <div class="text-end">
+        <a asp-action="Create" class="btn btn-primary">Add New</a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var job in Model)
+            {
+                <tr>
+                    <td>@job.Id</td>
+                    <td>@job.Name</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-Id="@job.Id" class="btn btn-warning"> Edit  </a>
+                        <a asp-action="Delete" asp-route-Id="@job.Id" class="btn btn-danger"> Delete  </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
