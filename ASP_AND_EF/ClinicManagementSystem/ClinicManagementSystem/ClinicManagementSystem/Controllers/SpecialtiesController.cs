@@ -13,16 +13,14 @@ namespace ClinicManagementSystem.Controllers
     {
         private readonly ISpecialtyRepository _specialtyRepository;
 
-        public SpecialtiesController(
-            ISpecialtyRepository specialtyRepository)
+        public SpecialtiesController(ISpecialtyRepository specialtyRepository)
         {
             _specialtyRepository = specialtyRepository;
         }
 
         public async Task<IActionResult> Index()
         {
-            var specialties =
-                await _specialtyRepository.GetAllSpecialtiesAsync();
+            var specialties = await _specialtyRepository.GetAllSpecialtiesAsync();
 
             var model = specialties.Select(s => new SpecialtyDto
             {
@@ -65,8 +63,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string uuid)
         {
-            var specialty =
-                await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
+            var specialty = await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
 
             if (specialty == null)
             {
@@ -88,10 +85,7 @@ namespace ClinicManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                var specialty =
-                    await _specialtyRepository.GetSpecialtyByUuidAsync(
-                        model.Uuid
-                    );
+                var specialty = await _specialtyRepository.GetSpecialtyByUuidAsync(model.Uuid);
 
                 if (specialty == null)
                 {
@@ -114,8 +108,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(string uuid)
         {
-            var specialty =
-                await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
+            var specialty = await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
 
             if (specialty == null)
             {
@@ -140,23 +133,18 @@ namespace ClinicManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var specialty =
-                await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
+            var specialty = await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
 
             if (specialty == null)
             {
                 return NotFound();
             }
 
-            bool hasDoctors =
-                await _specialtyRepository.HasDoctorsAsync(specialty.Id);
+            bool hasDoctors = await _specialtyRepository.HasDoctorsAsync(specialty.Id);
 
             if (hasDoctors)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Cannot delete this specialty because it has linked doctors."
-                );
+                ModelState.AddModelError("","Cannot delete this specialty because it has linked doctors.");
 
                 var model = new SpecialtyDto
                 {

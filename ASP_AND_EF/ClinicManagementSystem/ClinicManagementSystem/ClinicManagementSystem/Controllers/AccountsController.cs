@@ -10,8 +10,7 @@ namespace ClinicManagementSystem.Controllers
     {
         private readonly IUserRepository _userRepository;
 
-        public AccountsController(
-            IUserRepository userRepository)
+        public AccountsController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }
@@ -30,12 +29,9 @@ namespace ClinicManagementSystem.Controllers
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LoginConfirm(
-            string email,
-            string password)
+        public async Task<IActionResult> LoginConfirm(string email,string password)
         {
-            if (string.IsNullOrWhiteSpace(email) ||
-                string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
                 ModelState.AddModelError("","Please enter your email and password.");
 

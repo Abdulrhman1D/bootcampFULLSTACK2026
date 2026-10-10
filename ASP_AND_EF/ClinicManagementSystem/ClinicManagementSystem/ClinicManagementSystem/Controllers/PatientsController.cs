@@ -12,8 +12,7 @@ namespace ClinicManagementSystem.Controllers
     {
         private readonly IPatientRepository _patientRepository;
 
-        public PatientsController(
-            IPatientRepository patientRepository)
+        public PatientsController(IPatientRepository patientRepository)
         {
             _patientRepository = patientRepository;
         }
@@ -158,8 +157,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirm(
-            string uuid)
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
             var patient = await _patientRepository.GetPatientByUuidAsync(uuid);
 

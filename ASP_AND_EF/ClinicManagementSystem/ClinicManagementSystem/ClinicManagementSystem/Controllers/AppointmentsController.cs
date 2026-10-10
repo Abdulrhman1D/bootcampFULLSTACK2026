@@ -15,8 +15,7 @@ namespace ClinicManagementSystem.Controllers
         private readonly IAppointmentRepository
             _appointmentRepository;
 
-        public AppointmentsController(
-            IAppointmentRepository appointmentRepository)
+        public AppointmentsController(IAppointmentRepository appointmentRepository)
         {
             _appointmentRepository = appointmentRepository;
         }

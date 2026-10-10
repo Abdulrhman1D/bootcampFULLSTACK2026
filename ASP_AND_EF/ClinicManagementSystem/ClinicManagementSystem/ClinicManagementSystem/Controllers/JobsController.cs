@@ -48,8 +48,7 @@ namespace ClinicManagementSystem.Controllers
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(
-            JobCreateDto jobCreateDto)
+        public async Task<IActionResult> Create(JobCreateDto jobCreateDto)
         {
             if (ModelState.IsValid)
             {
@@ -72,8 +71,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string uuid)
         {
-            var job =
-                await _jobRepository.GetJobByUuidAsync(uuid);
+            var job = await _jobRepository.GetJobByUuidAsync(uuid);
 
             if (job == null)
             {
@@ -94,15 +92,11 @@ namespace ClinicManagementSystem.Controllers
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
-            JobUpdateDto jobUpdateDto)
+        public async Task<IActionResult> Edit(JobUpdateDto jobUpdateDto)
         {
             if (ModelState.IsValid)
             {
-                var job =
-                    await _jobRepository.GetJobByUuidAsync(
-                        jobUpdateDto.Uuid
-                    );
+                var job = await _jobRepository.GetJobByUuidAsync(jobUpdateDto.Uuid);
 
                 if (job == null)
                 {
@@ -125,8 +119,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(string uuid)
         {
-            var job =
-                await _jobRepository.GetJobByUuidAsync(uuid);
+            var job = await _jobRepository.GetJobByUuidAsync(uuid);
 
             if (job == null)
             {
@@ -149,26 +142,20 @@ namespace ClinicManagementSystem.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirm(
-            string uuid)
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var job =
-                await _jobRepository.GetJobByUuidAsync(uuid);
+            var job = await _jobRepository.GetJobByUuidAsync(uuid);
 
             if (job == null)
             {
                 return NotFound();
             }
 
-            bool hasDoctors =
-                await _jobRepository.HasDoctorsAsync(job.Id);
+            bool hasDoctors = await _jobRepository.HasDoctorsAsync(job.Id);
 
             if (hasDoctors)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Cannot delete this job because it has linked doctors."
-                );
+                ModelState.AddModelError("","Cannot delete this job because it has linked doctors.");
 
                 var model = new JobDto
                 {
