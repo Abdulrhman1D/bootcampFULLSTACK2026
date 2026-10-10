@@ -1,4 +1,5 @@
-﻿@model AppointmentViewModel
+﻿@using ClinicManagementSystem.Dtos
+@model AppointmentUpdateDto
 
 @{
     ViewData["Title"] = "Edit Appointment";
@@ -7,76 +8,84 @@
 <div class="container">
     <h1>Edit Appointment</h1>
 
-    <form asp-action="Edit" method="post">
-        <div asp-validation-summary="All" class="text-danger"></div>
-        <input asp-for="Appointment.Id" type="hidden" />
+    <form asp-action="Edit"
+          asp-route-uuid="@Model.Uuid"
+          method="post">
+
+        <div asp-validation-summary="All"
+             class="text-danger"></div>
 
         <div class="form-group">
-            <label asp-for="Appointment.PatientId">Patient</label>
-           
-            <select asp-for="Appointment.PatientId" class="form-control">
-                <option value="">Select Patient</option>
+            <label asp-for="PatientId">
+                Patient
+            </label>
 
-                @foreach (var patient in Model.Patients)
-                {
-                    <option value="@patient.Id">@patient.Name</option>
-                }
+            <select asp-for="PatientId"
+                    asp-items="ViewBag.Patients"
+                    class="form-control">
+                <option value="">
+                    -- Select Patient --
+                </option>
             </select>
 
-            <span asp-validation-for="Appointment.PatientId"
+            <span asp-validation-for="PatientId"
                   class="text-danger"></span>
         </div>
 
         <div class="form-group">
-            <label asp-for="Appointment.DoctorId">Doctor</label>
+            <label asp-for="DoctorId">
+                Doctor
+            </label>
 
-            <select asp-for="Appointment.DoctorId" class="form-control">
-                <option value="">Select Doctor</option>
-
-                @foreach (var doctor in Model.Doctors)
-                {
-                    <option value="@doctor.Id">@doctor.Name</option>
-                }
+            <select asp-for="DoctorId"
+                    asp-items="ViewBag.Doctors"
+                    class="form-control">
+                <option value="">
+                    -- Select Doctor --
+                </option>
             </select>
 
-            <span asp-validation-for="Appointment.DoctorId"
+            <span asp-validation-for="DoctorId"
                   class="text-danger"></span>
         </div>
 
         <div class="form-group">
-            <label asp-for="Appointment.AppointmentDate">
+            <label asp-for="AppointmentDate">
                 Appointment Date
             </label>
-            <input asp-for="Appointment.AppointmentDate"
+
+            <input asp-for="AppointmentDate"
                    type="datetime-local"
                    class="form-control" />
-            <span asp-validation-for="Appointment.AppointmentDate"
+
+            <span asp-validation-for="AppointmentDate"
                   class="text-danger"></span>
         </div>
 
         <div class="form-group">
-            <label asp-for="Appointment.Status">Status</label>
-            <input asp-for="Appointment.Status" class="form-control" />
-            <span asp-validation-for="Appointment.Status"
+            <label asp-for="Status"></label>
+            <input asp-for="Status"
+                   class="form-control" />
+            <span asp-validation-for="Status"
                   class="text-danger"></span>
         </div>
 
         <div class="form-group">
-            <label asp-for="Appointment.Notes">Notes</label>
-            <textarea asp-for="Appointment.Notes"
+            <label asp-for="Notes"></label>
+            <textarea asp-for="Notes"
                       class="form-control"></textarea>
-            <span asp-validation-for="Appointment.Notes"
+            <span asp-validation-for="Notes"
                   class="text-danger"></span>
         </div>
 
         <br />
 
-        <input type="submit" value="Update" class="btn btn-warning" />
+        <input type="submit"
+               value="Update"
+               class="btn btn-warning" />
     </form>
 
-    <div>
-        <a asp-action="Index">Back to List</a>
-    </div>
+    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

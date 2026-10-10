@@ -1,15 +1,16 @@
-﻿@model IEnumerable<User>
+﻿@using ClinicManagementSystem.Dtos
+@model IEnumerable<UserDto>
 
 @{
     ViewData["Title"] = "Users";
-    int count = 1;
 }
 
 <div class="container">
     <h1>Users</h1>
 
     <div class="text-end">
-        <a asp-action="Create" class="btn btn-primary">
+        <a asp-action="Create"
+           class="btn btn-primary">
             New User
         </a>
     </div>
@@ -22,10 +23,10 @@
                 <th>Username</th>
                 <th>Email</th>
                 <th>Status</th>
-                <th>Actiooonns</th>
+                <th>Actions</th>
             </tr>
         </thead>
-           
+
         <tbody>
             @foreach (var user in Model)
             {
@@ -37,34 +38,37 @@
                     <td>
                         @if (user.IsLocked)
                         {
-                            <span class="text-danger">Locked</span>
+                            <span class="text-danger">
+                                Locked
+                            </span>
                         }
                         else
                         {
-                            <span class="text-success">Active</span>
+                            <span class="text-success">
+                                Active
+                            </span>
                         }
                     </td>
                     <td>
                         <a asp-action="Details"
-                           asp-route-id="@user.Id"
+                           asp-route-uuid="@user.Uuid"
                            class="btn btn-info">
                             Details
                         </a>
 
                         <a asp-action="Edit"
-                           asp-route-id="@user.Id"
+                           asp-route-uuid="@user.Uuid"
                            class="btn btn-warning">
                             Edit
                         </a>
 
                         <a asp-action="Delete"
-                           asp-route-id="@user.Id"
+                           asp-route-uuid="@user.Uuid"
                            class="btn btn-danger">
                             Delete
                         </a>
                     </td>
                 </tr>
-                count++;
             }
         </tbody>
     </table>

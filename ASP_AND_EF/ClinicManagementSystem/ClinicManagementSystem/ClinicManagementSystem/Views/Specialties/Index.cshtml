@@ -1,11 +1,17 @@
-﻿@model IEnumerable<Specialty>
+﻿@using ClinicManagementSystem.Dtos
+@model IEnumerable<SpecialtyDto>
+
+@{
+    ViewData["Title"] = "Specialties";
+}
 
 <div class="container">
-
-    <h2>Specialties</h2>
+    <h1>Specialties</h1>
 
     <div class="text-end">
-        <a asp-action="Create" class="btn btn-primary">Add New</a>
+        <a asp-action="Create" class="btn btn-primary">
+            Add New
+        </a>
     </div>
 
     <table class="table table-striped">
@@ -16,6 +22,7 @@
                 <th>Action</th>
             </tr>
         </thead>
+
         <tbody>
             @foreach (var specialty in Model)
             {
@@ -23,8 +30,17 @@
                     <td>@specialty.Id</td>
                     <td>@specialty.Name</td>
                     <td>
-                        <a asp-action="Edit" asp-route-Id="@specialty.Id" class="btn btn-warning"> Edit  </a>
-                        <a asp-action="Delete" asp-route-Id="@specialty.Id" class="btn btn-danger"> Delete  </a>
+                        <a asp-action="Edit"
+                           asp-route-uuid="@specialty.Uuid"
+                           class="btn btn-warning">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-uuid="@specialty.Uuid"
+                           class="btn btn-danger">
+                            Delete
+                        </a>
                     </td>
                 </tr>
             }

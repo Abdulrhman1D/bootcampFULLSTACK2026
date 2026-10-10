@@ -1,66 +1,78 @@
-﻿@model User
+﻿@using ClinicManagementSystem.Dtos
+@model UserUpdateDto
 
 @{
     ViewData["Title"] = "Edit User";
 }
 
-<h1>Edit User</h1>
+<div class="container">
+    <h1>Edit User</h1>
 
-<form asp-action="Edit" method="post">
+    <form asp-action="Edit"
+          asp-route-uuid="@Model.Uuid"
+          method="post">
 
-    <input asp-for="Id" type="hidden" />
- 
-    <div class="mb-3">
-        <label asp-for="Name"></label>
-        <input asp-for="Name"
-               class="form-control" />
-    </div>
- 
-    <div class="mb-3">
-        <label asp-for="UserName"></label>
-        <input asp-for="UserName"
-               class="form-control" />
-    </div>
+        <div asp-validation-summary="All"
+             class="text-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="Email"></label>
-        <input asp-for="Email"
-               type="email"
-               class="form-control" />
-    </div>
-     
-    <div class="mb-3">
-        <label>New Password</label>
+        <div class="form-group">
+            <label asp-for="Name"></label>
+            <input asp-for="Name"
+                   class="form-control" />
+            <span asp-validation-for="Name"
+                  class="text-danger"></span>
+        </div>
 
-        <input name="Password"
-               type="password"
-               class="form-control" />
+        <div class="form-group">
+            <label asp-for="UserName"></label>
+            <input asp-for="UserName"
+                   class="form-control" />
+            <span asp-validation-for="UserName"
+                  class="text-danger"></span>
+        </div>
 
-        <small class="text-muted">
-            Leave empty to keep current password
-        </small>
-    </div>
+        <div class="form-group">
+            <label asp-for="Email"></label>
+            <input asp-for="Email"
+                   type="email"
+                   class="form-control" />
+            <span asp-validation-for="Email"
+                  class="text-danger"></span>
+        </div>
 
-    <div class="form-check mb-3">
+        <div class="form-group">
+            <label asp-for="Password">
+                New Password
+            </label>
 
-        <input asp-for="IsLocked"
-               class="form-check-input" />
+            <input asp-for="Password"
+                   type="password"
+                   class="form-control" />
 
-        <label asp-for="IsLocked"
-               class="form-check-label">
-            Locked
-        </label>
+            <small class="text-muted">
+                Leave empty to keep the current password.
+            </small>
 
-    </div>
+            <span asp-validation-for="Password"
+                  class="text-danger"></span>
+        </div>
 
-    <button type="submit"
-            class="btn btn-warning">
-        Update
-    </button>
+        <div class="form-check mt-3">
+            <input asp-for="IsLocked"
+                   class="form-check-input" />
 
-    <a asp-action="Index"
-       class="btn btn-secondary">
-        Back
-    </a>
+            <label asp-for="IsLocked"
+                   class="form-check-label">
+                Lock account
+            </label>
+        </div>
 
-</form>
+        <br />
+
+        <input type="submit"
+               value="Update"
+               class="btn btn-warning" />
+    </form>
+
+    <a asp-action="Index">Back to List</a>
+</div>

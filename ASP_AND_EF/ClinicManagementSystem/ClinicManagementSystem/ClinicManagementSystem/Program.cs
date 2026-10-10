@@ -1,4 +1,5 @@
 using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Accounts/Login";
         options.AccessDeniedPath = "/Account/AccessDenied";
     });
+
+builder.Services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<IDoctorRepository,DoctorRepository>();
+builder.Services.AddScoped<IPatientRepository,PatientRepository>();
+builder.Services.AddScoped<IAppointmentRepository,AppointmentRepository>();
+builder.Services.AddScoped<IUserRepository,UserRepository>();
 
 
 var app = builder.Build();

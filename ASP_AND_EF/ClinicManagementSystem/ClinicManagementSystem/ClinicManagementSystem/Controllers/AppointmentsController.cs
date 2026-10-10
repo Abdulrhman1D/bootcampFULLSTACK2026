@@ -1,206 +1,216 @@
 ﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Dtos;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicManagementSystem.Controllers
 {
+    [Authorize]
     public class AppointmentsController : Controller
     {
-        private readonly AppDbContext _db;
-        public AppointmentsController(AppDbContext db)
+        private readonly IAppointmentRepository
+            _appointmentRepository;
+
+        public AppointmentsController(
+            IAppointmentRepository appointmentRepository)
         {
-            _db = db;
+            _appointmentRepository = appointmentRepository;
         }
-        public ActionResult Index()
+
+        // =========================
+        // Index
+        // =========================
+        public async Task<IActionResult> Index()
         {
-            var appointments = _db.Appointments.Include(a => a.Patient).Include(a => a.Doctor).ToList();
-        
-            return View(appointments);
+            var appointments = await _appointmentRepository.GetAllAppointmentsAsync();
+
+            var model = appointments.Select(a => new AppointmentDto
+                {
+                    Id = a.Id,
+                    Uuid = a.Uuid,
+
+                    PatientName = a.Patient != null ? a.Patient.Name : "",
+
+                    DoctorName = a.Doctor != null ? a.Doctor.Name : "",
+
+                    AppointmentDate = a.AppointmentDate,
+                    Status = a.Status,
+                    Notes = a.Notes
+                }).ToList();
+
+            return View(model);
         }
+
         // =========================
         // Create GET
         // =========================
         [HttpGet]
-        public ActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var model = new AppointmentViewModel
-            {
-                Patients = _db.Patients.ToList(),
-                Doctors = _db.Doctors.ToList()
-            };
+            await LoadPatientsAndDoctorsAsync();
 
-            return View(model);
+            return View(new AppointmentCreateDto());
         }
+
         // =========================
         // Create POST
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(AppointmentViewModel model)
+        public async Task<IActionResult> Create(AppointmentCreateDto appointmentDTO)
         {
-            var patient = _db.Patients.FirstOrDefault(
-                p => p.Id == model.Appointment.PatientId
-            );
-
-            if (patient == null)
-            {
-                ModelState.AddModelError(
-                    "Appointment.PatientId",
-                    "Please select a valid patient."
-                );
-            }
-
-            var doctor = _db.Doctors.FirstOrDefault(
-                d => d.Id == model.Appointment.DoctorId
-            );
-
-            if (doctor == null)
-            {
-                ModelState.AddModelError(
-                    "Appointment.DoctorId",
-                    "Please select a valid doctor."
-                );
-            }
-
             if (ModelState.IsValid)
             {
                 var appointment = new Appointment
                 {
-                    PatientId = model.Appointment.PatientId,
-                    DoctorId = model.Appointment.DoctorId,
-                    AppointmentDate = model.Appointment.AppointmentDate,
-                    Status = model.Appointment.Status,
-                    Notes = model.Appointment.Notes
+                    PatientId = appointmentDTO.PatientId,
+                    DoctorId = appointmentDTO.DoctorId,
+                    AppointmentDate = appointmentDTO.AppointmentDate,
+                    Status = appointmentDTO.Status,
+                    Notes = appointmentDTO.Notes
                 };
 
-                _db.Appointments.Add(appointment);
-                _db.SaveChanges();
+                await _appointmentRepository.AddAppointmentAsync(appointment);
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
-            model.Patients = _db.Patients.ToList();
-            model.Doctors = _db.Doctors.ToList();
+            await LoadPatientsAndDoctorsAsync();
 
-            return View(model);
+            return View(appointmentDTO);
         }
 
         // =========================
         // Edit GET
         // =========================
         [HttpGet]
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var appointment = _db.Appointments.FirstOrDefault(
-                a => a.Id == id
-            );
+            var appointment = await _appointmentRepository.GetAppointmentByUuidAsync(uuid);
 
             if (appointment == null)
             {
                 return NotFound();
             }
 
-            var model = new AppointmentViewModel
+            var model = new AppointmentUpdateDto
             {
-                Appointment = appointment,
-                Patients = _db.Patients.ToList(),
-                Doctors = _db.Doctors.ToList()
+                Uuid = appointment.Uuid,
+                PatientId = appointment.PatientId,
+                DoctorId = appointment.DoctorId,
+                AppointmentDate = appointment.AppointmentDate,
+                Status = appointment.Status,
+                Notes = appointment.Notes
             };
+
+            await LoadPatientsAndDoctorsAsync();
 
             return View(model);
         }
+
         // =========================
         // Edit POST
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(AppointmentViewModel model)
+        public async Task<IActionResult> Edit(AppointmentUpdateDto appointmentDTO)
         {
-            var oldAppointment = _db.Appointments.FirstOrDefault(
-                a => a.Id == model.Appointment.Id
-            );
+            if (ModelState.IsValid)
+            {
+                var appointment = await _appointmentRepository.GetAppointmentByUuidAsync(appointmentDTO.Uuid);
 
-            if (oldAppointment == null)
+                if (appointment == null)
+                {
+                    return NotFound();
+                }
+
+                appointment.PatientId = appointmentDTO.PatientId;
+
+                appointment.DoctorId = appointmentDTO.DoctorId;
+
+                appointment.AppointmentDate = appointmentDTO.AppointmentDate;
+
+                appointment.Status = appointmentDTO.Status;
+
+                appointment.Notes = appointmentDTO.Notes;
+
+                await _appointmentRepository.UpdateAppointmentAsync(appointment);
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            await LoadPatientsAndDoctorsAsync();
+
+            return View(appointmentDTO);
+        }
+
+        // =========================
+        // Delete GET
+        // =========================
+        [HttpGet]
+        public async Task<IActionResult> Delete(string uuid)
+        {
+            var appointment = await _appointmentRepository.GetAppointmentByUuidAsync(uuid);
+
+            if (appointment == null)
             {
                 return NotFound();
             }
 
-            var patient = _db.Patients.FirstOrDefault(
-                p => p.Id == model.Appointment.PatientId
-            );
-
-            if (patient == null)
+            var model = new AppointmentDto
             {
-                ModelState.AddModelError(
-                    "Appointment.PatientId",
-                    "Please select a valid patient."
-                );
-            }
+                Id = appointment.Id,
+                Uuid = appointment.Uuid,
 
-            var doctor = _db.Doctors.FirstOrDefault(
-                d => d.Id == model.Appointment.DoctorId
-            );
+                PatientName = appointment.Patient != null ? appointment.Patient.Name : "",
 
-            if (doctor == null)
-            {
-                ModelState.AddModelError(
-                    "Appointment.DoctorId",
-                    "Please select a valid doctor."
-                );
-            }
+                DoctorName = appointment.Doctor != null ? appointment.Doctor.Name : "",
 
-            if (ModelState.IsValid)
-            {
-                oldAppointment.PatientId = model.Appointment.PatientId;
-                oldAppointment.DoctorId = model.Appointment.DoctorId;
-                oldAppointment.AppointmentDate = model.Appointment.AppointmentDate;
-                oldAppointment.Status = model.Appointment.Status;
-                oldAppointment.Notes = model.Appointment.Notes;
+                AppointmentDate = appointment.AppointmentDate,
 
-                _db.SaveChanges();
-
-                return RedirectToAction("Index");
-            }
-
-            model.Patients = _db.Patients.ToList();
-            model.Doctors = _db.Doctors.ToList();
+                Status = appointment.Status,
+                Notes = appointment.Notes
+            };
 
             return View(model);
         }
-        //==========================
-        //Delete
-        //==========================
-        [HttpGet]
-        public ActionResult Delete(int Id)
-        {
-            var appointment = _db.Appointments.Include(a => a.Patient).Include(a => a.Doctor).FirstOrDefault(a => a.Id == Id);
-            if (appointment == null)
-            {
-                return NotFound();
-            }
-            return View(appointment);
-        }
 
-
+        // =========================
+        // Delete POST
+        // =========================
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirm(int id)
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var appointment = _db.Appointments.FirstOrDefault(
-                a => a.Id == id
-            );
+            var appointment = await _appointmentRepository.GetAppointmentByUuidAsync(uuid);
 
             if (appointment == null)
             {
                 return NotFound();
             }
 
-            _db.Appointments.Remove(appointment);
-            _db.SaveChanges();
+            await _appointmentRepository.DeleteAppointmentAsync(uuid);
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =========================
+        // Load Lists
+        // =========================
+        private async Task LoadPatientsAndDoctorsAsync()
+        {
+            var patients = await _appointmentRepository.GetAllPatientsAsync();
+
+            var doctors = await _appointmentRepository.GetAllDoctorsAsync();
+
+            ViewBag.Patients = new SelectList(patients,"Id","Name");
+
+            ViewBag.Doctors = new SelectList(doctors,"Id","Name");
         }
     }
 }

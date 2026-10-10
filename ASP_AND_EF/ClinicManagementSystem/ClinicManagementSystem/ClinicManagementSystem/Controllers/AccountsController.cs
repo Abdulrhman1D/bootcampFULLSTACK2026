@@ -1,4 +1,4 @@
-﻿using ClinicManagementSystem.Data;
+﻿using ClinicManagementSystem.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -8,20 +8,26 @@ namespace ClinicManagementSystem.Controllers
 {
     public class AccountsController : Controller
     {
+        private readonly IUserRepository _userRepository;
 
-        private readonly AppDbContext _db;
-
-        public AccountsController(AppDbContext db)
+        public AccountsController(
+            IUserRepository userRepository)
         {
-            _db = db;
+            _userRepository = userRepository;
         }
 
+        // =========================
+        // Login GET
+        // =========================
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
+        // =========================
+        // Login POST
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LoginConfirm(
@@ -31,87 +37,64 @@ namespace ClinicManagementSystem.Controllers
             if (string.IsNullOrWhiteSpace(email) ||
                 string.IsNullOrWhiteSpace(password))
             {
-                ModelState.AddModelError(
-                    "",
-                    "Please enter your email and password."
-                );
+                ModelState.AddModelError("","Please enter your email and password.");
 
                 return View("Login");
             }
 
-            var user = _db.Users.FirstOrDefault(
-                u => u.Email == email
-            );
+            var user = await _userRepository.GetUserByEmailAsync(email);
 
             if (user == null)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Invalid email or password."
-                );
+                ModelState.AddModelError("","Invalid email or password.");
 
                 return View("Login");
             }
 
-            bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(
-                password,
-                user.Password
-            );
+            bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(password,user.Password);
 
             if (!isPasswordCorrect)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Invalid email or password."
-                );
+                ModelState.AddModelError("","Invalid email or password.");
 
                 return View("Login");
             }
 
             if (user.IsLocked)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Your account is locked."
-                );
+                ModelState.AddModelError("","Your account is locked.");
 
                 return View("Login");
             }
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(
-                    ClaimTypes.NameIdentifier,
-                    user.Id.ToString()
+                new Claim(ClaimTypes.Name,user.Name),
+
+                new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()
                 )
             };
 
-            var identity = new ClaimsIdentity(
-                claims,
-                CookieAuthenticationDefaults.AuthenticationScheme
-            );
+            var identity = new ClaimsIdentity(claims,CookieAuthenticationDefaults.AuthenticationScheme);
 
             var principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                principal
-            );
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,principal);
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index","Home");
         }
 
+        // =========================
+        // Logout POST
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme
-            );
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             return RedirectToAction("Login");
         }
-
+    
     }
 }

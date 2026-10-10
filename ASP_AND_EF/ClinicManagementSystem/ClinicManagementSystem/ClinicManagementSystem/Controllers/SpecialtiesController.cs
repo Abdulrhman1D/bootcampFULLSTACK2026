@@ -1,5 +1,7 @@
 ﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Dtos;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,90 +11,125 @@ namespace ClinicManagementSystem.Controllers
     [Authorize]
     public class SpecialtiesController : Controller
     {
-        private readonly AppDbContext _db;
-        public SpecialtiesController(AppDbContext db)
+        private readonly ISpecialtyRepository _specialtyRepository;
+
+        public SpecialtiesController(
+            ISpecialtyRepository specialtyRepository)
         {
-            _db = db;
+            _specialtyRepository = specialtyRepository;
         }
-        public ActionResult Index()
+
+        public async Task<IActionResult> Index()
         {
-            //Entity Framework Approach
-            IEnumerable<Specialty> specialty = _db.Specialties.ToList();
-            return View(specialty);
+            var specialties =
+                await _specialtyRepository.GetAllSpecialtiesAsync();
+
+            var model = specialties.Select(s => new SpecialtyDto
+            {
+                Id = s.Id,
+                Uuid = s.Uuid,
+                Name = s.Name
+            }).ToList();
+
+            return View(model);
         }
+
+
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
             return View();
         }
         [HttpPost]
-        public ActionResult Create(Specialty specialty)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(SpecialtyCreateDto specialtyCreateDto)
         {
             if (ModelState.IsValid)
             {
-                _db.Specialties.Add(specialty);
-                _db.SaveChanges();
+                var specialty = new Specialty
+                {
+                    Name = specialtyCreateDto.Name
+                };
+
+                await _specialtyRepository.AddSpecialtyAsync(specialty);
+
                 return RedirectToAction("Index");
             }
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(specialty);
+
+            return View(specialtyCreateDto);
         }
 
         //===============
         //Edit
         //==========================
         [HttpGet]
-        public ActionResult Edit(int Id)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var specialty = _db.Specialties.Find(Id);
+            var specialty =
+                await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
+
             if (specialty == null)
             {
                 return NotFound();
             }
-            return View(specialty);
+
+            var model = new SpecialtyUpdateDto
+            {
+                Uuid = specialty.Uuid,
+                Name = specialty.Name
+            };
+
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Specialty specialty)
+        public async Task<IActionResult> Edit(SpecialtyUpdateDto model)
         {
             if (ModelState.IsValid)
             {
-                var oldSpecialty = _db.Specialties.FirstOrDefault(
-                    s => s.Id == specialty.Id
-                );
+                var specialty =
+                    await _specialtyRepository.GetSpecialtyByUuidAsync(
+                        model.Uuid
+                    );
 
-                if (oldSpecialty == null)
+                if (specialty == null)
                 {
                     return NotFound();
                 }
 
-                oldSpecialty.Name = specialty.Name;
+                specialty.Name = model.Name;
 
-                _db.SaveChanges();
+                await _specialtyRepository.UpdateSpecialtyAsync(specialty);
 
                 return RedirectToAction("Index");
             }
 
-            return View(specialty);
+            return View(model);
         }
 
         // =========================
         // Delete GET
         // =========================
         [HttpGet]
-        public ActionResult Delete(int id)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var specialty = _db.Specialties.FirstOrDefault(
-                s => s.Id == id
-            );
+            var specialty =
+                await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
 
             if (specialty == null)
             {
                 return NotFound();
             }
 
-            return View(specialty);
+            var model = new SpecialtyDto
+            {
+                Id = specialty.Id,
+                Uuid = specialty.Uuid,
+                Name = specialty.Name
+            };
+
+            return View(model);
         }
 
         // =========================
@@ -101,33 +138,37 @@ namespace ClinicManagementSystem.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirm(int id)
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var specialty = _db.Specialties.FirstOrDefault(
-                s => s.Id == id
-            );
+            var specialty =
+                await _specialtyRepository.GetSpecialtyByUuidAsync(uuid);
 
             if (specialty == null)
             {
                 return NotFound();
             }
 
-            var doctor = _db.Doctors.FirstOrDefault(
-                d => d.SpecialtyId == id
-            );
+            bool hasDoctors =
+                await _specialtyRepository.HasDoctorsAsync(specialty.Id);
 
-            if (doctor != null)
+            if (hasDoctors)
             {
                 ModelState.AddModelError(
                     "",
                     "Cannot delete this specialty because it has linked doctors."
                 );
 
-                return View("Delete", specialty);
+                var model = new SpecialtyDto
+                {
+                    Id = specialty.Id,
+                    Uuid = specialty.Uuid,
+                    Name = specialty.Name
+                };
+
+                return View("Delete", model);
             }
 
-            _db.Specialties.Remove(specialty);
-            _db.SaveChanges();
+            await _specialtyRepository.DeleteSpecialtyAsync(uuid);
 
             return RedirectToAction("Index");
         }

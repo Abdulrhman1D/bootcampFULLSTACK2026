@@ -1,5 +1,7 @@
 ﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Dtos;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,90 +10,137 @@ namespace ClinicManagementSystem.Controllers
     [Authorize]
     public class JobsController : Controller
     {
-        private readonly AppDbContext _db;
-        public JobsController(AppDbContext db)
+        private readonly IJobRepository _jobRepository;
+
+        public JobsController(IJobRepository jobRepository)
         {
-            _db = db;
+            _jobRepository = jobRepository;
         }
-        public ActionResult Index()
+
+        // =========================
+        // Index
+        // =========================
+        public async Task<IActionResult> Index()
         {
-            //Entity Framework Approach
-            IEnumerable<Job> job = _db.Jobs.ToList();
-            return View(job);
+            var jobs = await _jobRepository.GetAllJobsAsync();
+
+            var model = jobs.Select(j => new JobDto
+            {
+                Id = j.Id,
+                Uuid = j.Uuid,
+                Name = j.Name
+            }).ToList();
+
+            return View(model);
         }
+
+        // =========================
+        // Create GET
+        // =========================
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
             return View();
         }
+
+        // =========================
+        // Create POST
+        // =========================
         [HttpPost]
-        public ActionResult Create(Job job)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(
+            JobCreateDto jobCreateDto)
         {
             if (ModelState.IsValid)
             {
-                _db.Jobs.Add(job);
-                _db.SaveChanges();
+                var job = new Job
+                {
+                    Name = jobCreateDto.Name
+                };
+
+                await _jobRepository.AddJobAsync(job);
+
                 return RedirectToAction("Index");
             }
-            ModelState.AddModelError("", "Please fill all the required fields.");
-            return View(job);
+
+            return View(jobCreateDto);
         }
 
-        //===============
-        //Edit
-        //==========================
+        // =========================
+        // Edit GET
+        // =========================
         [HttpGet]
-        public ActionResult Edit(int Id)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var job = _db.Jobs.Find(Id);
+            var job =
+                await _jobRepository.GetJobByUuidAsync(uuid);
+
             if (job == null)
             {
                 return NotFound();
             }
-            return View(job);
+
+            var model = new JobUpdateDto
+            {
+                Uuid = job.Uuid,
+                Name = job.Name
+            };
+
+            return View(model);
         }
 
+        // =========================
+        // Edit POST
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Job job)
+        public async Task<IActionResult> Edit(
+            JobUpdateDto jobUpdateDto)
         {
             if (ModelState.IsValid)
             {
-                var oldJob = _db.Jobs.FirstOrDefault(
-                    s => s.Id == job.Id
-                );
+                var job =
+                    await _jobRepository.GetJobByUuidAsync(
+                        jobUpdateDto.Uuid
+                    );
 
-                if (oldJob == null)
+                if (job == null)
                 {
                     return NotFound();
                 }
 
-                oldJob.Name = job.Name;
+                job.Name = jobUpdateDto.Name;
 
-                _db.SaveChanges();
+                await _jobRepository.UpdateJobAsync(job);
 
                 return RedirectToAction("Index");
             }
 
-            return View(job);
+            return View(jobUpdateDto);
         }
 
         // =========================
         // Delete GET
         // =========================
         [HttpGet]
-        public ActionResult Delete(int id)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var job = _db.Jobs.FirstOrDefault(
-                s => s.Id == id
-            );
+            var job =
+                await _jobRepository.GetJobByUuidAsync(uuid);
 
             if (job == null)
             {
                 return NotFound();
             }
 
-            return View(job);
+            var model = new JobDto
+            {
+                Id = job.Id,
+                Uuid = job.Uuid,
+                Name = job.Name
+            };
+
+            return View(model);
         }
 
         // =========================
@@ -100,33 +149,38 @@ namespace ClinicManagementSystem.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirm(int id)
+        public async Task<IActionResult> DeleteConfirm(
+            string uuid)
         {
-            var job = _db.Jobs.FirstOrDefault(
-                j => j.Id == id
-            );
+            var job =
+                await _jobRepository.GetJobByUuidAsync(uuid);
 
             if (job == null)
             {
                 return NotFound();
             }
 
-            var doctor = _db.Doctors.FirstOrDefault(
-                d => d.JobId == id
-            );
+            bool hasDoctors =
+                await _jobRepository.HasDoctorsAsync(job.Id);
 
-            if (doctor != null)
+            if (hasDoctors)
             {
                 ModelState.AddModelError(
                     "",
                     "Cannot delete this job because it has linked doctors."
                 );
 
-                return View("Delete", job);
+                var model = new JobDto
+                {
+                    Id = job.Id,
+                    Uuid = job.Uuid,
+                    Name = job.Name
+                };
+
+                return View("Delete", model);
             }
 
-            _db.Jobs.Remove(job);
-            _db.SaveChanges();
+            await _jobRepository.DeleteJobAsync(uuid);
 
             return RedirectToAction("Index");
         }

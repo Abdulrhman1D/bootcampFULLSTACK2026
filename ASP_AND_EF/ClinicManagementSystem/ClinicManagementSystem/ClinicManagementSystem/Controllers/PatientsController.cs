@@ -1,5 +1,7 @@
 ﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Dtos;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,124 +10,186 @@ namespace ClinicManagementSystem.Controllers
     [Authorize]
     public class PatientsController : Controller
     {
-        private readonly AppDbContext _db;
-        public PatientsController(AppDbContext db)
+        private readonly IPatientRepository _patientRepository;
+
+        public PatientsController(
+            IPatientRepository patientRepository)
         {
-            _db = db;
-        }
-        public ActionResult Index()
-        {
-            //Entity Framework Approach
-            IEnumerable<Patient> patients = _db.Patients.ToList();
-            return View(patients);
+            _patientRepository = patientRepository;
         }
 
+        // =========================
+        // Index
+        // =========================
+        public async Task<IActionResult> Index()
+        {
+            var patients = await _patientRepository.GetAllPatientsAsync();
+
+            var model = patients.Select(p => new PatientDto
+            {
+                Id = p.Id,
+                Uuid = p.Uuid,
+                Name = p.Name,
+                Phone = p.Phone,
+                DateOfBirth = p.DateOfBirth,
+                Gender = p.Gender
+            }).ToList();
+
+            return View(model);
+        }
+
+        // =========================
+        // Create GET
+        // =========================
         [HttpGet]
-        public ActionResult Create()
+        public IActionResult Create()
         {
-            return View();
+            return View(new PatientCreateDto());
         }
 
+        // =========================
+        // Create POST
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Patient patient)
+        public async Task<IActionResult> Create(PatientCreateDto patientDTO)
         {
             if (ModelState.IsValid)
             {
-                _db.Patients.Add(patient);
-                _db.SaveChanges();
+                var patient = new Patient
+                {
+                    Name = patientDTO.Name,
+                    Phone = patientDTO.Phone,
+                    DateOfBirth = patientDTO.DateOfBirth,
+                    Gender = patientDTO.Gender
+                };
 
-                return RedirectToAction("Index");
+                await _patientRepository.AddPatientAsync(patient);
+
+                return RedirectToAction(nameof(Index));
             }
 
-            return View(patient);
+            return View(patientDTO);
         }
-        //===============
-        //Edit
-        //==========================
+
+        // =========================
+        // Edit GET
+        // =========================
         [HttpGet]
-        public ActionResult Edit(int Id)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var patient = _db.Patients.Find(Id);
+            var patient = await _patientRepository.GetPatientByUuidAsync(uuid);
+
             if (patient == null)
             {
                 return NotFound();
             }
-            return View(patient);
+
+            var model = new PatientUpdateDto
+            {
+                Uuid = patient.Uuid,
+                Name = patient.Name,
+                Phone = patient.Phone,
+                DateOfBirth = patient.DateOfBirth,
+                Gender = patient.Gender
+            };
+
+            return View(model);
         }
 
+        // =========================
+        // Edit POST
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Patient patient)
+        public async Task<IActionResult> Edit(PatientUpdateDto patientDTO)
         {
             if (ModelState.IsValid)
             {
-                var oldPatient = _db.Patients.FirstOrDefault(
-                    p => p.Id == patient.Id
-                );
+                var patient = await _patientRepository.GetPatientByUuidAsync(patientDTO.Uuid);
 
-                if (oldPatient == null)
+                if (patient == null)
                 {
                     return NotFound();
                 }
 
-                oldPatient.Name = patient.Name;
-                oldPatient.Phone = patient.Phone;
-                oldPatient.DateOfBirth = patient.DateOfBirth;
-                oldPatient.Gender = patient.Gender;
+                patient.Name = patientDTO.Name;
+                patient.Phone = patientDTO.Phone;
+                patient.DateOfBirth = patientDTO.DateOfBirth;
+                patient.Gender = patientDTO.Gender;
 
-                _db.SaveChanges();
+                await _patientRepository.UpdatePatientAsync(patient);
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
-            return View(patient);
+            return View(patientDTO);
         }
-        //===============
-        //Delete
-        //==========================
+
+        // =========================
+        // Delete GET
+        // =========================
         [HttpGet]
-        public ActionResult Delete(int Id)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var patient = _db.Patients.Find(Id);
+            var patient = await _patientRepository.GetPatientByUuidAsync(uuid);
+
             if (patient == null)
             {
                 return NotFound();
             }
-            return View(patient);
+
+            var model = new PatientDto
+            {
+                Id = patient.Id,
+                Uuid = patient.Uuid,
+                Name = patient.Name,
+                Phone = patient.Phone,
+                DateOfBirth = patient.DateOfBirth,
+                Gender = patient.Gender
+            };
+
+            return View(model);
         }
+
+        // =========================
+        // Delete POST
+        // =========================
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirm(int id)
+        public async Task<IActionResult> DeleteConfirm(
+            string uuid)
         {
-            var patient = _db.Patients.FirstOrDefault(
-                p => p.Id == id
-            );
+            var patient = await _patientRepository.GetPatientByUuidAsync(uuid);
 
             if (patient == null)
             {
                 return NotFound();
             }
 
-            var appointment = _db.Appointments.FirstOrDefault(
-                a => a.PatientId == id
-            );
+            bool hasAppointments = await _patientRepository.HasAppointmentsAsync(patient.Id);
 
-            if (appointment != null)
+            if (hasAppointments)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Cannot delete this patient because they have linked appointments."
-                );
+                ModelState.AddModelError("","Cannot delete this patient because they have linked appointments.");
 
-                return View("Delete", patient);
+                var model = new PatientDto
+                {
+                    Id = patient.Id,
+                    Uuid = patient.Uuid,
+                    Name = patient.Name,
+                    Phone = patient.Phone,
+                    DateOfBirth = patient.DateOfBirth,
+                    Gender = patient.Gender
+                };
+
+                return View("Delete", model);
             }
 
-            _db.Patients.Remove(patient);
-            _db.SaveChanges();
+            await _patientRepository.DeletePatientAsync(uuid);
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Dtos;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,24 +11,58 @@ namespace ClinicManagementSystem.Controllers
     [Authorize]
     public class UsersController : Controller
     {
+        private readonly IUserRepository _userRepository;
 
-        private readonly AppDbContext _db;
-
-        public UsersController(AppDbContext db)
+        public UsersController(IUserRepository userRepository)
         {
-            _db = db;
+            _userRepository = userRepository;
         }
 
         // =========================
         // Index
         // =========================
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var users = _db.Users.ToList();
+            var users = await _userRepository.GetAllUsersAsync();
 
-            return View(users);
+            var model = users.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Uuid = u.Uuid,
+                Name = u.Name,
+                UserName = u.UserName,
+                Email = u.Email,
+                IsLocked = u.IsLocked
+            }).ToList();
+
+            return View(model);
         }
 
+        // =========================
+        // Details
+        // =========================
+        [HttpGet]
+        public async Task<IActionResult> Details(string uuid)
+        {
+            var user = await _userRepository.GetUserByUuidAsync(uuid);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var model = new UserDto
+            {
+                Id = user.Id,
+                Uuid = user.Uuid,
+                Name = user.Name,
+                UserName = user.UserName,
+                Email = user.Email,
+                IsLocked = user.IsLocked
+            };
+
+            return View(model);
+        }
 
         // =========================
         // Create GET
@@ -34,123 +70,154 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return View(new UserCreateDto());
         }
-
 
         // =========================
         // Create POST
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(User user)
+        public async Task<IActionResult> Create(UserCreateDto userDTO)
         {
-            var existingUser = _db.Users.FirstOrDefault(
-                u => u.Email == user.Email
-            );
+            var existingUser = await _userRepository.GetUserByEmailAsync(userDTO.Email);
 
             if (existingUser != null)
             {
-                ModelState.AddModelError(
-                    "Email",
-                    "This email is already registered."
-                );
+                ModelState.AddModelError("Email","This email is already registered.");
             }
 
             if (ModelState.IsValid)
             {
-                var newUser = new User
+                var user = new User
                 {
-                    Name = user.Name,
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(user.Password),
-                    IsLocked = user.IsLocked
+                    Name = userDTO.Name,
+                    UserName = userDTO.UserName,
+                    Email = userDTO.Email,
+
+                    Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password),
+
+                    IsLocked = userDTO.IsLocked
                 };
 
-                _db.Users.Add(newUser);
-                _db.SaveChanges();
+                await _userRepository.AddUserAsync(user);
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
-            return View(user);
+            return View(userDTO);
         }
+
         // =========================
         // Edit GET
         // =========================
-        public IActionResult Edit(int id)
+        [HttpGet]
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var user = _db.Users.Find(id);
+            var user = await _userRepository.GetUserByUuidAsync(uuid);
 
             if (user == null)
+            {
                 return NotFound();
+            }
 
-            return View(user);
+            var model = new UserUpdateDto
+            {
+                Uuid = user.Uuid,
+                Name = user.Name,
+                UserName = user.UserName,
+                Email = user.Email,
+                IsLocked = user.IsLocked
+            };
+
+            return View(model);
         }
-
 
         // =========================
         // Edit POST
         // =========================
         [HttpPost]
-        public IActionResult Edit(User user)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(UserUpdateDto userDTO)
         {
-            if (ModelState.IsValid)
+            var user = await _userRepository.GetUserByUuidAsync(userDTO.Uuid);
+
+            if (user == null)
             {
-                var oldUser = _db.Users.Find(user.Id);
-
-                if (oldUser == null)
-                    return NotFound();
-
-                oldUser.Name = user.Name;
-                oldUser.UserName = user.UserName;
-                oldUser.Email = user.Email;
-                oldUser.IsLocked = user.IsLocked;
-
-
-                if (!string.IsNullOrEmpty(user.Password))
-                {
-
-                    oldUser.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-                }
-
-                _db.SaveChanges();
-
-                return RedirectToAction("Index");
+                return NotFound();
             }
 
-            return View(user);
+            var existingUser = await _userRepository.GetUserByEmailAsync(userDTO.Email);
+
+            if (existingUser != null && existingUser.Uuid != userDTO.Uuid)
+            {
+                ModelState.AddModelError("Email","This email is already registered.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                user.Name = userDTO.Name;
+                user.UserName = userDTO.UserName;
+                user.Email = userDTO.Email;
+                user.IsLocked = userDTO.IsLocked;
+
+                if (!string.IsNullOrWhiteSpace(userDTO.Password))
+                {
+                    user.Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password);
+                }
+
+                await _userRepository.UpdateUserAsync(user);
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(userDTO);
         }
 
         // =========================
         // Delete GET
         // =========================
-        public IActionResult Delete(int id)
+        [HttpGet]
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var user = _db.Users.Find(id);
+            var user = await _userRepository.GetUserByUuidAsync(uuid);
 
             if (user == null)
+            {
                 return NotFound();
+            }
 
-            return View(user);
+            var model = new UserDto
+            {
+                Id = user.Id,
+                Uuid = user.Uuid,
+                Name = user.Name,
+                UserName = user.UserName,
+                Email = user.Email,
+                IsLocked = user.IsLocked
+            };
+
+            return View(model);
         }
 
-        // POST
+        // =========================
+        // Delete POST
+        // =========================
         [HttpPost]
         [ActionName("Delete")]
-        public IActionResult DeleteConfirm(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var user = _db.Users.Find(id);
+            var user = await _userRepository.GetUserByUuidAsync(uuid);
 
             if (user == null)
+            {
                 return NotFound();
+            }
 
-            _db.Users.Remove(user);
-            _db.SaveChanges();
+            await _userRepository.DeleteUserAsync(uuid);
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
-
     }
 }

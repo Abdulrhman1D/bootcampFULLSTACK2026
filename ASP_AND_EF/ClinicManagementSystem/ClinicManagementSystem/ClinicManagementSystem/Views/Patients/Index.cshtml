@@ -1,37 +1,54 @@
-﻿@model IEnumerable<Patient>
+﻿@using ClinicManagementSystem.Dtos
+@model IEnumerable<PatientDto>
+
 <div class="container">
-    <h2>Patients</h2>
+    <h1>Patients</h1>
+
     <div class="text-end">
-        <a asp-action="Create" class="btn btn-primary">Add New</a>
+        <a asp-action="Create"
+           class="btn btn-primary">
+            Add New
+        </a>
     </div>
+
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>Id</th>
                 <th>Name</th>
                 <th>Phone</th>
-                <th>DateOfBirth</th>
+                <th>Date of Birth</th>
                 <th>Gender</th>
                 <th>Action</th>
             </tr>
         </thead>
+
         <tbody>
-            @foreach (var emp in Model)
+            @foreach (var patient in Model)
             {
                 <tr>
-                    <td>@emp.Id</td>
-                    <td>@emp.Name</td>
-                    <td>@emp.Phone</td>
+                    <td>@patient.Id</td>
+                    <td>@patient.Name</td>
+                    <td>@patient.Phone</td>
                     <td>
-                        @(emp.DateOfBirth?.ToString(
+                        @(patient.DateOfBirth?.ToString(
                             "dd/MM/yyyy",
                             System.Globalization.CultureInfo.InvariantCulture
                         ))
                     </td>
-                    <td>@emp.Gender</td>
+                    <td>@patient.Gender</td>
                     <td>
-                        <a asp-action="Edit" asp-route-Id="@emp.Id" class="btn btn-warning"> Edit  </a>
-                        <a asp-action="Delete" asp-route-Id="@emp.Id" class="btn btn-danger"> Delete  </a>
+                        <a asp-action="Edit"
+                           asp-route-uuid="@patient.Uuid"
+                           class="btn btn-warning">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-uuid="@patient.Uuid"
+                           class="btn btn-danger">
+                            Delete
+                        </a>
                     </td>
                 </tr>
             }

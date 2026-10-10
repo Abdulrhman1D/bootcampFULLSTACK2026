@@ -1,8 +1,10 @@
 ﻿using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Dtos;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicManagementSystem.Controllers
@@ -10,164 +12,156 @@ namespace ClinicManagementSystem.Controllers
     [Authorize]
     public class DoctorsController : Controller
     {
-        private readonly AppDbContext _db;
-        public DoctorsController(AppDbContext db)
+        private readonly IDoctorRepository _doctorRepository;
+
+        public DoctorsController(IDoctorRepository doctorRepository)
         {
-            _db = db;
+            _doctorRepository = doctorRepository;
         }
 
-        public ActionResult Index()
+        // =========================
+        // Index
+        // =========================
+        public async Task<IActionResult> Index()
         {
-            //Entity Framework Approach
+            var doctors = await _doctorRepository.GetAllDoctorsAsync();
 
-            IEnumerable <DoctorDto> doctors = _db.Doctors.Select(e => new DoctorDto
+            var model = doctors.Select(d => new DoctorDto
             {
-                Id = e.Id,
-                Name = e.Name,
-                Phone = e.Phone,
-                SpecialtyName = e.Specialty != null ? e.Specialty.Name : null
-            }).ToList();
-            return View(doctors);
+                Id = d.Id,
+                Uuid = d.Uuid,
+                Name = d.Name,
+                Phone = d.Phone,
+
+                SpecialtyName = d.Specialty != null? d.Specialty.Name: "",
+
+                JobName = d.Job != null? d.Job.Name: ""}).ToList();
+
+            return View(model);
         }
 
-        //public ActionResult Index()
-        //{
-        //    //Entity Framework Approach
-        //    //IEnumerable<Doctor> Doctors = _db.Doctors.ToList();
-        //    var doctors = _db.Doctors
-        //    .Include(d => d.Specialty)
-        //    .ToList();
-        //    return View(doctors);
-        //}
         // =========================
         // Create GET
         // =========================
         [HttpGet]
-        public ActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var model = new DoctorViewModel
-            {
-                Specialties = _db.Specialties.ToList()
-            };
+            await LoadSpecialtiesAndJobsAsync();
 
-            return View(model);
+            return View(new DoctorCreateDto());
         }
+
         // =========================
         // Create POST
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(DoctorViewModel model)
+        public async Task<IActionResult> Create(DoctorCreateDto doctorDTO)
         {
-            var specialty = _db.Specialties.FirstOrDefault(
-                s => s.Id == model.Doctor.SpecialtyId
-                );
-
-            if (specialty == null)
-            {
-                ModelState.AddModelError(
-                    "Doctor.SpecialtyId",
-                    "Please select a valid specialty."
-                );
-            }
-
             if (ModelState.IsValid)
             {
                 var doctor = new Doctor
                 {
-                    Name = model.Doctor.Name,
-                    Phone = model.Doctor.Phone,
-                    SpecialtyId = model.Doctor.SpecialtyId
+                    Name = doctorDTO.Name,
+                    Phone = doctorDTO.Phone,
+                    SpecialtyId = doctorDTO.SpecialtyId,
+                    JobId = doctorDTO.JobId
                 };
 
-                _db.Doctors.Add(doctor);
-                _db.SaveChanges();
+                await _doctorRepository.AddDoctorAsync(doctor);
 
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
-            model.Specialties = _db.Specialties.ToList();
+            await LoadSpecialtiesAndJobsAsync();
 
-            return View(model);
+            return View(doctorDTO);
         }
+
         // =========================
         // Edit GET
         // =========================
         [HttpGet]
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(string uuid)
         {
-            var doctor = _db.Doctors.Find(id);
+            var doctor = await _doctorRepository.GetDoctorByUuidAsync(uuid);
 
             if (doctor == null)
             {
                 return NotFound();
             }
 
-            var model = new DoctorViewModel
+            var model = new DoctorUpdateDto
             {
-                Doctor = doctor,
-                Specialties = _db.Specialties.ToList()
+                Uuid = doctor.Uuid,
+                Name = doctor.Name,
+                Phone = doctor.Phone,
+                SpecialtyId = doctor.SpecialtyId,
+                JobId = doctor.JobId
             };
+
+            await LoadSpecialtiesAndJobsAsync();
 
             return View(model);
         }
+
         // =========================
         // Edit POST
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(DoctorViewModel model)
+        public async Task<IActionResult> Edit(DoctorUpdateDto doctorDTO)
         {
-            var oldDoctor = _db.Doctors.Find(model.Doctor.Id);
-
-            if (oldDoctor == null)
-            {
-                return NotFound();
-            }
-
-            var specialty = _db.Specialties.FirstOrDefault(
-                s => s.Id == model.Doctor.SpecialtyId
-                );
-
-            if (specialty == null)
-            {
-                ModelState.AddModelError(
-                    "Doctor.SpecialtyId",
-                    "Please select a valid specialty."
-                );
-            }
-
             if (ModelState.IsValid)
             {
-                oldDoctor.Name = model.Doctor.Name;
-                oldDoctor.Phone = model.Doctor.Phone;
-                oldDoctor.SpecialtyId = model.Doctor.SpecialtyId;
+                var doctor = await _doctorRepository.GetDoctorByUuidAsync(doctorDTO.Uuid);
 
-                _db.SaveChanges();
+                if (doctor == null)
+                {
+                    return NotFound();
+                }
 
-                return RedirectToAction("Index");
+                doctor.Name = doctorDTO.Name;
+                doctor.Phone = doctorDTO.Phone;
+                doctor.SpecialtyId = doctorDTO.SpecialtyId;
+                doctor.JobId = doctorDTO.JobId;
+
+                await _doctorRepository.UpdateDoctorAsync(doctor);
+
+                return RedirectToAction(nameof(Index));
             }
 
-            model.Specialties = _db.Specialties.ToList();
+            await LoadSpecialtiesAndJobsAsync();
 
-            return View(model);
+            return View(doctorDTO);
         }
+
         // =========================
         // Delete GET
         // =========================
         [HttpGet]
-        public ActionResult Delete(int id)
+        public async Task<IActionResult> Delete(string uuid)
         {
-            var doctor = _db.Doctors
-                .Include(d => d.Specialty)
-                .FirstOrDefault(d => d.Id == id);
+            var doctor = await _doctorRepository.GetDoctorByUuidAsync(uuid);
 
             if (doctor == null)
             {
                 return NotFound();
             }
 
-            return View(doctor);
+            var model = new DoctorDto
+            {
+                Id = doctor.Id,
+                Uuid = doctor.Uuid,
+                Name = doctor.Name,
+                Phone = doctor.Phone,
+
+                SpecialtyName = doctor.Specialty != null? doctor.Specialty.Name: "",
+
+                JobName = doctor.Job != null? doctor.Job.Name: ""
+            };
+
+            return View(model);
         }
 
         // =========================
@@ -176,35 +170,53 @@ namespace ClinicManagementSystem.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirm(int id)
+        public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var doctor = _db.Doctors
-                .Include(d => d.Specialty)
-                .FirstOrDefault(d => d.Id == id);
+            var doctor = await _doctorRepository.GetDoctorByUuidAsync(uuid);
 
             if (doctor == null)
             {
                 return NotFound();
             }
 
-            var appointment = _db.Appointments.FirstOrDefault(
-                a => a.DoctorId == id
-            );
+            bool hasAppointments = await _doctorRepository.HasAppointmentsAsync(doctor.Id);
 
-            if (appointment != null)
+            if (hasAppointments)
             {
-                ModelState.AddModelError(
-                    "",
-                    "Cannot delete this doctor because they have linked appointments."
-                );
+                ModelState.AddModelError("","Cannot delete this doctor because they have linked appointments.");
 
-                return View("Delete", doctor);
+                var model = new DoctorDto
+                {
+                    Id = doctor.Id,
+                    Uuid = doctor.Uuid,
+                    Name = doctor.Name,
+                    Phone = doctor.Phone,
+
+                    SpecialtyName = doctor.Specialty != null? doctor.Specialty.Name: "",
+
+                    JobName = doctor.Job != null? doctor.Job.Name: ""
+                };
+
+                return View("Delete", model);
             }
 
-            _db.Doctors.Remove(doctor);
-            _db.SaveChanges();
+            await _doctorRepository.DeleteDoctorAsync(uuid);
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =========================
+        // Load Lists
+        // =========================
+        private async Task LoadSpecialtiesAndJobsAsync()
+        {
+            var specialties = await _doctorRepository.GetAllSpecialtiesAsync();
+
+            var jobs = await _doctorRepository.GetAllJobsAsync();
+
+            ViewBag.Specialties = new SelectList(specialties,"Id","Name");
+
+            ViewBag.Jobs = new SelectList(jobs,"Id","Name");
         }
     }
 }

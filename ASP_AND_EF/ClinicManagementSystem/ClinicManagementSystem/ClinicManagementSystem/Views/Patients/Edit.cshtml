@@ -1,4 +1,5 @@
-﻿@model Patient
+﻿@using ClinicManagementSystem.Dtos
+@model PatientUpdateDto
 
 @{
     ViewData["Title"] = "Edit Patient";
@@ -7,55 +8,46 @@
 <div class="container">
     <h1>Edit Patient</h1>
 
-    <form asp-action="Edit" method="post">
+    <form asp-action="Edit"asp-route-uuid="@Model.Uuid"method="post">
+
         <div asp-validation-summary="All" class="text-danger"></div>
 
-        <input asp-for="Id" type="hidden" />
-
         <div class="form-group">
-            <label asp-for="Name" class="control-label"></label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name"
-                  class="text-danger"></span>
+            <label asp-for="Name"></label>
+            <input asp-for="Name"class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
         </div>
 
         <div class="form-group">
-            <label asp-for="Phone" class="control-label"></label>
-            <input asp-for="Phone" class="form-control" />
-            <span asp-validation-for="Phone"
-                  class="text-danger"></span>
+            <label asp-for="Phone"></label>
+            <input asp-for="Phone"class="form-control" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
         </div>
 
         <div class="form-group">
-            <label asp-for="DateOfBirth" class="control-label">
+            <label asp-for="DateOfBirth">
                 Date of Birth
             </label>
-            <input asp-for="DateOfBirth"
-                   type="date"
-                   class="form-control" />
-            <span asp-validation-for="DateOfBirth"
-                  class="text-danger"></span>
+
+            <input asp-for="DateOfBirth" type="date" class="form-control" />
+
+            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label>Gender</label>
 
             <div>
-                <input asp-for="Gender"
-                       type="radio"
-                       value="Male"
-                       id="male" />
+                <input asp-for="Gender" type="radio" value="Male" id="male" />
+
                 <label for="male">Male</label>
 
-                <input asp-for="Gender"
-                       type="radio"
-                       value="Female"
-                       id="female" />
+                <input asp-for="Gender" type="radio" value="Female" id="female" />
+
                 <label for="female">Female</label>
             </div>
 
-            <span asp-validation-for="Gender"
-                  class="text-danger"></span>
+            <span asp-validation-for="Gender" class="text-danger"></span>
         </div>
 
         <br />
@@ -63,9 +55,7 @@
         <input type="submit" value="Update" class="btn btn-warning" />
     </form>
 
-    <div>
-        <a asp-action="Index">Back to List</a>
-    </div>
+    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
