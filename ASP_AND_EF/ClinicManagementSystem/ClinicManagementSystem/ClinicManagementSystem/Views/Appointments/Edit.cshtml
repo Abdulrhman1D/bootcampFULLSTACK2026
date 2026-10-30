@@ -1,4 +1,4 @@
-﻿@using ClinicManagementSystem.Dtos
+﻿@using ClinicManagementSystem.Application.Dtos
 @model AppointmentUpdateDto
 
 @{
@@ -14,6 +14,7 @@
 
         <div asp-validation-summary="All"
              class="text-danger"></div>
+        <input asp-for="Uuid" type="hidden" />
 
         <div class="form-group">
             <label asp-for="PatientId">

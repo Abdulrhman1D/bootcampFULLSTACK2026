@@ -1,4 +1,5 @@
-﻿using ClinicManagementSystem.Repositories;
+﻿using ClinicManagementSystem.Infrastructure.Repositories;
+using ClinicManagementSystem.Infrastructure.Repositories.Base;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +9,19 @@ namespace ClinicManagementSystem.Controllers
 {
     public class AccountsController : Controller
     {
-        private readonly IUserRepository _userRepository;
+        //private readonly IUserRepository _userRepository;
 
-        public AccountsController(IUserRepository userRepository)
+        //public AccountsController(IUserRepository userRepository)
+        //{
+        //    _userRepository = userRepository;
+        //}
+
+        private readonly IUnitOfWork _unitOfWork;
+
+        public AccountsController(IUnitOfWork unitOfWork)
         {
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
+
         }
 
         // =========================
@@ -38,7 +47,7 @@ namespace ClinicManagementSystem.Controllers
                 return View("Login");
             }
 
-            var user = await _userRepository.GetUserByEmailAsync(email);
+            var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
 
             if (user == null)
             {

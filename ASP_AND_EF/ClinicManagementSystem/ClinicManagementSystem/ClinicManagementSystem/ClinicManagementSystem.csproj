@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Repositories\Base\" />
+    <ProjectReference Include="..\ClinicManagementSystem.Application\ClinicManagementSystem.Application.csproj" />
+    <ProjectReference Include="..\ClinicManagementSystem.Domain\ClinicManagementSystem.Domain.csproj" />
+    <ProjectReference Include="..\ClinicManagementSystem.Infrastructure\ClinicManagementSystem.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

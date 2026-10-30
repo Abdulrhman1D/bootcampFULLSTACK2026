@@ -1,3 +1,7 @@
 <Solution>
+  <Project Path="ClinicManagementSystem.API/ClinicManagementSystem.API.csproj" Id="0b9b70ce-11d4-4627-925d-d30ab3d10603" />
+  <Project Path="ClinicManagementSystem.Application/ClinicManagementSystem.Application.csproj" Id="b9a243c0-1e2f-4d71-b4d6-86f8b72e6ef6" />
+  <Project Path="ClinicManagementSystem.Domain/ClinicManagementSystem.Domain.csproj" Id="873b97b7-3570-47b9-a32a-0bcde3fb7303" />
+  <Project Path="ClinicManagementSystem.Infrastructure/ClinicManagementSystem.Infrastructure.csproj" Id="0507c1d0-291f-496a-a50b-fa2d12feff57" />
   <Project Path="ClinicManagementSystem/ClinicManagementSystem.csproj" />
 </Solution>

@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Appointment>
+﻿@using ClinicManagementSystem.Application.Dtos
+@model IEnumerable<AppointmentDto>
 <div class="container">
     <h2>Appointments</h2>
     <div class="text-end">
@@ -22,14 +23,20 @@
             {
                 <tr>
                     <td>@appointment.Id</td>
-                    <td>@appointment.Patient?.Name</td>
-                    <td>@appointment.Doctor?.Name</td>
-                    <td>@appointment.AppointmentDate</td>
+                    <td>@appointment.PatientName</td>
+                    <td>@appointment.DoctorName</td>
+                    <td>
+                        @appointment.AppointmentDate.ToString("dd/MM/yyyy HH:mm",System.Globalization.CultureInfo.InvariantCulture)
+                    </td>
                     <td>@appointment.Status</td>
                     <td>@appointment.Notes</td>
                     <td>
-                        <a asp-action="Edit" asp-route-Id="@appointment.Id" class="btn btn-warning"> Edit  </a>
-                        <a asp-action="Delete" asp-route-Id="@appointment.Id" class="btn btn-danger"> Delete  </a>
+                        <a asp-controller="Appointments" asp-action="Edit" asp-route-uuid="@appointment.Uuid" class="btn btn-warning">
+                            Edit
+                        </a>
+                        <a asp-controller="Appointments" asp-action="Delete" asp-route-uuid="@appointment.Uuid" class="btn btn-danger">
+                            Delete
+                        </a>
                     </td>
                 </tr>
             }

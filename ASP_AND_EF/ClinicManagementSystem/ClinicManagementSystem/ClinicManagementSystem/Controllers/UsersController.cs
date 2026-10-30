@@ -1,7 +1,6 @@
-﻿using ClinicManagementSystem.Data;
-using ClinicManagementSystem.Dtos;
-using ClinicManagementSystem.Models;
-using ClinicManagementSystem.Repositories;
+﻿using ClinicManagementSystem.Application.Dtos;
+using ClinicManagementSystem.Domain.Models;
+using ClinicManagementSystem.Infrastructure.Repositories.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,11 +10,19 @@ namespace ClinicManagementSystem.Controllers
     [Authorize]
     public class UsersController : Controller
     {
-        private readonly IUserRepository _userRepository;
+        //private readonly IUserRepository _userRepository;
 
-        public UsersController(IUserRepository userRepository)
+        //public UsersController(IUserRepository userRepository)
+        //{
+        //    _userRepository = userRepository;
+        //}
+
+        private readonly IUnitOfWork _unitOfWork;
+
+        public UsersController(IUnitOfWork unitOfWork)
         {
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
+
         }
 
         // =========================
@@ -23,7 +30,7 @@ namespace ClinicManagementSystem.Controllers
         // =========================
         public async Task<IActionResult> Index()
         {
-            var users = await _userRepository.GetAllUsersAsync();
+            var users = await _unitOfWork.UserRepository.GetAllUsersAsync();
 
             var model = users.Select(u => new UserDto
             {
@@ -44,7 +51,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(string uuid)
         {
-            var user = await _userRepository.GetUserByUuidAsync(uuid);
+            var user = await _unitOfWork.UserRepository.GetUserByUuidAsync(uuid);
 
             if (user == null)
             {
@@ -80,7 +87,7 @@ namespace ClinicManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserCreateDto userDTO)
         {
-            var existingUser = await _userRepository.GetUserByEmailAsync(userDTO.Email);
+            var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(userDTO.Email);
 
             if (existingUser != null)
             {
@@ -100,7 +107,7 @@ namespace ClinicManagementSystem.Controllers
                     IsLocked = userDTO.IsLocked
                 };
 
-                await _userRepository.AddUserAsync(user);
+                await _unitOfWork.UserRepository.AddUserAsync(user);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -114,7 +121,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string uuid)
         {
-            var user = await _userRepository.GetUserByUuidAsync(uuid);
+            var user = await _unitOfWork.UserRepository.GetUserByUuidAsync(uuid);
 
             if (user == null)
             {
@@ -140,14 +147,14 @@ namespace ClinicManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UserUpdateDto userDTO)
         {
-            var user = await _userRepository.GetUserByUuidAsync(userDTO.Uuid);
+            var user = await _unitOfWork.UserRepository.GetUserByUuidAsync(userDTO.Uuid);
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            var existingUser = await _userRepository.GetUserByEmailAsync(userDTO.Email);
+            var existingUser = await _unitOfWork.UserRepository.GetUserByEmailAsync(userDTO.Email);
 
             if (existingUser != null && existingUser.Uuid != userDTO.Uuid)
             {
@@ -166,7 +173,7 @@ namespace ClinicManagementSystem.Controllers
                     user.Password = BCrypt.Net.BCrypt.HashPassword(userDTO.Password);
                 }
 
-                await _userRepository.UpdateUserAsync(user);
+                await _unitOfWork.UserRepository.UpdateUserAsync(user);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -180,7 +187,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(string uuid)
         {
-            var user = await _userRepository.GetUserByUuidAsync(uuid);
+            var user = await _unitOfWork.UserRepository.GetUserByUuidAsync(uuid);
 
             if (user == null)
             {
@@ -208,14 +215,14 @@ namespace ClinicManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var user = await _userRepository.GetUserByUuidAsync(uuid);
+            var user = await _unitOfWork.UserRepository.GetUserByUuidAsync(uuid);
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            await _userRepository.DeleteUserAsync(uuid);
+            await _unitOfWork.UserRepository.DeleteUserAsync(uuid);
 
             return RedirectToAction(nameof(Index));
         }

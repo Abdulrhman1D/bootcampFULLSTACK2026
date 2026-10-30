@@ -1,30 +1,36 @@
-﻿using ClinicManagementSystem.Data;
-using ClinicManagementSystem.Dtos;
-using ClinicManagementSystem.Models;
-using ClinicManagementSystem.Repositories;
+﻿using ClinicManagementSystem.Application.Dtos;
+using ClinicManagementSystem.Domain.Models;
+using ClinicManagementSystem.Infrastructure.Repositories.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace ClinicManagementSystem.Controllers
 {
     [Authorize]
     public class DoctorsController : Controller
     {
-        private readonly IDoctorRepository _doctorRepository;
+        //private readonly IDoctorRepository _doctorRepository;
 
-        public DoctorsController(IDoctorRepository doctorRepository)
+        //public DoctorsController(IDoctorRepository doctorRepository)
+        //{
+        //    _doctorRepository = doctorRepository;
+        //}
+
+        private readonly IUnitOfWork _unitOfWork;
+
+        public DoctorsController(IUnitOfWork unitOfWork)
         {
-            _doctorRepository = doctorRepository;
-        }
+            _unitOfWork = unitOfWork;
 
+        }
         // =========================
         // Index
         // =========================
         public async Task<IActionResult> Index()
         {
-            var doctors = await _doctorRepository.GetAllDoctorsAsync();
+            var doctors = await _unitOfWork.DoctorRepository.GetAllDoctorsAsync();
 
             var model = doctors.Select(d => new DoctorDto
             {
@@ -68,7 +74,7 @@ namespace ClinicManagementSystem.Controllers
                     JobId = doctorDTO.JobId
                 };
 
-                await _doctorRepository.AddDoctorAsync(doctor);
+                await _unitOfWork.DoctorRepository.AddDoctorAsync(doctor);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -84,7 +90,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string uuid)
         {
-            var doctor = await _doctorRepository.GetDoctorByUuidAsync(uuid);
+            var doctor = await _unitOfWork.DoctorRepository.GetDoctorByUuidAsync(uuid);
 
             if (doctor == null)
             {
@@ -114,7 +120,7 @@ namespace ClinicManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                var doctor = await _doctorRepository.GetDoctorByUuidAsync(doctorDTO.Uuid);
+                var doctor = await _unitOfWork.DoctorRepository.GetDoctorByUuidAsync(doctorDTO.Uuid);
 
                 if (doctor == null)
                 {
@@ -126,7 +132,7 @@ namespace ClinicManagementSystem.Controllers
                 doctor.SpecialtyId = doctorDTO.SpecialtyId;
                 doctor.JobId = doctorDTO.JobId;
 
-                await _doctorRepository.UpdateDoctorAsync(doctor);
+                await _unitOfWork.DoctorRepository.UpdateDoctorAsync(doctor);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -142,7 +148,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(string uuid)
         {
-            var doctor = await _doctorRepository.GetDoctorByUuidAsync(uuid);
+            var doctor = await _unitOfWork.DoctorRepository.GetDoctorByUuidAsync(uuid);
 
             if (doctor == null)
             {
@@ -172,14 +178,14 @@ namespace ClinicManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var doctor = await _doctorRepository.GetDoctorByUuidAsync(uuid);
+            var doctor = await _unitOfWork.DoctorRepository.GetDoctorByUuidAsync(uuid);
 
             if (doctor == null)
             {
                 return NotFound();
             }
 
-            bool hasAppointments = await _doctorRepository.HasAppointmentsAsync(doctor.Id);
+            bool hasAppointments = await _unitOfWork.DoctorRepository.HasAppointmentsAsync(doctor.Id);
 
             if (hasAppointments)
             {
@@ -200,7 +206,7 @@ namespace ClinicManagementSystem.Controllers
                 return View("Delete", model);
             }
 
-            await _doctorRepository.DeleteDoctorAsync(uuid);
+            await _unitOfWork.DoctorRepository.DeleteDoctorAsync(uuid);
 
             return RedirectToAction(nameof(Index));
         }
@@ -210,9 +216,9 @@ namespace ClinicManagementSystem.Controllers
         // =========================
         private async Task LoadSpecialtiesAndJobsAsync()
         {
-            var specialties = await _doctorRepository.GetAllSpecialtiesAsync();
+            var specialties = await _unitOfWork.DoctorRepository.GetAllSpecialtiesAsync();
 
-            var jobs = await _doctorRepository.GetAllJobsAsync();
+            var jobs = await _unitOfWork.DoctorRepository.GetAllJobsAsync();
 
             ViewBag.Specialties = new SelectList(specialties,"Id","Name");
 

@@ -1,7 +1,11 @@
-using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Infrastructure.Data;
 using ClinicManagementSystem.Repositories;
+using ClinicManagementSystem.Infrastructure.Repositories.Base;
+using ClinicManagementSystem.Application.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using ClinicManagementSystem.Services.Base;
+using ClinicManagementSystem.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,12 +28,33 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
     });
 
+// ================================
+// Repositories
+// ================================
 builder.Services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IDoctorRepository,DoctorRepository>();
 builder.Services.AddScoped<IPatientRepository,PatientRepository>();
 builder.Services.AddScoped<IAppointmentRepository,AppointmentRepository>();
 builder.Services.AddScoped<IUserRepository,UserRepository>();
+
+// ================================
+// Unit Of Work
+// ================================
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// ================================
+// Services
+// ================================
+builder.Services.AddScoped<IAppointmentServices,AppointmentServices>();
+builder.Services.AddScoped<IDoctorServices,DoctorServices>();
+builder.Services.AddScoped<IPatientServices,PatientServices>();
+builder.Services.AddScoped<IJobServices,JobServices>();
+builder.Services.AddScoped<ISpecialtyServices,SpecialtyServices>();
+builder.Services.AddScoped<IUserServices,UserServices>();
+
+
 
 
 var app = builder.Build();

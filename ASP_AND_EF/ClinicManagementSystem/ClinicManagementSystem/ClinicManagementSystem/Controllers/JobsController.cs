@@ -1,7 +1,6 @@
-﻿using ClinicManagementSystem.Data;
-using ClinicManagementSystem.Dtos;
-using ClinicManagementSystem.Models;
-using ClinicManagementSystem.Repositories;
+﻿using ClinicManagementSystem.Application.Dtos;
+using ClinicManagementSystem.Domain.Models;
+using ClinicManagementSystem.Infrastructure.Repositories.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +9,19 @@ namespace ClinicManagementSystem.Controllers
     [Authorize]
     public class JobsController : Controller
     {
-        private readonly IJobRepository _jobRepository;
+        //private readonly IJobRepository _jobRepository;
 
-        public JobsController(IJobRepository jobRepository)
+        //public JobsController(IJobRepository jobRepository)
+        //{
+        //    _jobRepository = jobRepository;
+        //}
+
+        private readonly IUnitOfWork _unitOfWork;
+
+        public JobsController(IUnitOfWork unitOfWork)
         {
-            _jobRepository = jobRepository;
+            _unitOfWork = unitOfWork;
+
         }
 
         // =========================
@@ -22,7 +29,7 @@ namespace ClinicManagementSystem.Controllers
         // =========================
         public async Task<IActionResult> Index()
         {
-            var jobs = await _jobRepository.GetAllJobsAsync();
+            var jobs = await _unitOfWork.JobRepository.GetAllJobsAsync();
 
             var model = jobs.Select(j => new JobDto
             {
@@ -57,7 +64,7 @@ namespace ClinicManagementSystem.Controllers
                     Name = jobCreateDto.Name
                 };
 
-                await _jobRepository.AddJobAsync(job);
+                await _unitOfWork.JobRepository.AddJobAsync(job);
 
                 return RedirectToAction("Index");
             }
@@ -71,7 +78,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string uuid)
         {
-            var job = await _jobRepository.GetJobByUuidAsync(uuid);
+            var job = await _unitOfWork.JobRepository.GetJobByUuidAsync(uuid);
 
             if (job == null)
             {
@@ -96,7 +103,7 @@ namespace ClinicManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                var job = await _jobRepository.GetJobByUuidAsync(jobUpdateDto.Uuid);
+                var job = await _unitOfWork.JobRepository.GetJobByUuidAsync(jobUpdateDto.Uuid);
 
                 if (job == null)
                 {
@@ -105,7 +112,7 @@ namespace ClinicManagementSystem.Controllers
 
                 job.Name = jobUpdateDto.Name;
 
-                await _jobRepository.UpdateJobAsync(job);
+                await _unitOfWork.JobRepository.UpdateJobAsync(job);
 
                 return RedirectToAction("Index");
             }
@@ -119,7 +126,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(string uuid)
         {
-            var job = await _jobRepository.GetJobByUuidAsync(uuid);
+            var job = await _unitOfWork.JobRepository.GetJobByUuidAsync(uuid);
 
             if (job == null)
             {
@@ -144,14 +151,14 @@ namespace ClinicManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var job = await _jobRepository.GetJobByUuidAsync(uuid);
+            var job = await _unitOfWork.JobRepository.GetJobByUuidAsync(uuid);
 
             if (job == null)
             {
                 return NotFound();
             }
 
-            bool hasDoctors = await _jobRepository.HasDoctorsAsync(job.Id);
+            bool hasDoctors = await _unitOfWork.JobRepository.HasDoctorsAsync(job.Id);
 
             if (hasDoctors)
             {
@@ -167,7 +174,7 @@ namespace ClinicManagementSystem.Controllers
                 return View("Delete", model);
             }
 
-            await _jobRepository.DeleteJobAsync(uuid);
+            await _unitOfWork.JobRepository.DeleteJobAsync(uuid);
 
             return RedirectToAction("Index");
         }

@@ -1,4 +1,4 @@
-﻿@using ClinicManagementSystem.Dtos
+﻿@using ClinicManagementSystem.Application.Dtos
 @model IEnumerable<SpecialtyDto>
 
 @{
@@ -19,6 +19,7 @@
             <tr>
                 <th>Id</th>
                 <th>Name</th>
+                <th>Image </th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -30,17 +31,17 @@
                     <td>@specialty.Id</td>
                     <td>@specialty.Name</td>
                     <td>
-                        <a asp-action="Edit"
-                           asp-route-uuid="@specialty.Uuid"
-                           class="btn btn-warning">
-                            Edit
-                        </a>
-
-                        <a asp-action="Delete"
-                           asp-route-uuid="@specialty.Uuid"
-                           class="btn btn-danger">
-                            Delete
-                        </a>
+                        @if (!string.IsNullOrEmpty(specialty.ImageUrl))
+                        {
+                            <img src="@specialty.ImageUrl" alt="Product Image" style="max-width: 100px; max-height: 100px;" />
+                        }
+                        else
+                        {
+                            <span>No Image</span>
+                        }
+                    <td>
+                        <a asp-action="Edit"asp-route-uuid="@specialty.Uuid" class="btn btn-warning"> Edit </a>
+                        <a asp-action="Delete" asp-route-uuid="@specialty.Uuid" class="btn btn-danger"> Delete </a>
                     </td>
                 </tr>
             }

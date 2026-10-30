@@ -1,4 +1,4 @@
-﻿@using ClinicManagementSystem.Dtos
+﻿@using ClinicManagementSystem.Application.Dtos
 @model SpecialtyCreateDto
 @{
     ViewData["Title"] = "Create Specialty";
@@ -8,7 +8,7 @@
 <div class="container">
     <h1>Create Specialty</h1>
 
-    <form asp-action="Create" method="post">
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
         <div asp-validation-summary="All" class="text-danger"></div>
 
         <div class="form-group">
@@ -16,6 +16,11 @@
             <input asp-for="Name" class="form-control" />
             <span asp-validation-for="Name"
                   class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label">صورة التخصص</label>
+            <input type="file" name="image" class="form-control" />
         </div>
 
         <br />

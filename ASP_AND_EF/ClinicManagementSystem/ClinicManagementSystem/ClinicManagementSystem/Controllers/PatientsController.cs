@@ -1,7 +1,6 @@
-﻿using ClinicManagementSystem.Data;
-using ClinicManagementSystem.Dtos;
-using ClinicManagementSystem.Models;
-using ClinicManagementSystem.Repositories;
+﻿using ClinicManagementSystem.Application.Dtos;
+using ClinicManagementSystem.Domain.Models;
+using ClinicManagementSystem.Infrastructure.Repositories.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +9,19 @@ namespace ClinicManagementSystem.Controllers
     [Authorize]
     public class PatientsController : Controller
     {
-        private readonly IPatientRepository _patientRepository;
+        //private readonly IPatientRepository _patientRepository;
 
-        public PatientsController(IPatientRepository patientRepository)
+        //public PatientsController(IPatientRepository patientRepository)
+        //{
+        //    _patientRepository = patientRepository;
+        //}
+
+        private readonly IUnitOfWork _unitOfWork;
+
+        public PatientsController(IUnitOfWork unitOfWork)
         {
-            _patientRepository = patientRepository;
+            _unitOfWork = unitOfWork;
+
         }
 
         // =========================
@@ -22,7 +29,7 @@ namespace ClinicManagementSystem.Controllers
         // =========================
         public async Task<IActionResult> Index()
         {
-            var patients = await _patientRepository.GetAllPatientsAsync();
+            var patients = await _unitOfWork.PatientRepository.GetAllPatientsAsync();
 
             var model = patients.Select(p => new PatientDto
             {
@@ -63,7 +70,7 @@ namespace ClinicManagementSystem.Controllers
                     Gender = patientDTO.Gender
                 };
 
-                await _patientRepository.AddPatientAsync(patient);
+                await _unitOfWork.PatientRepository.AddPatientAsync(patient);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -77,7 +84,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string uuid)
         {
-            var patient = await _patientRepository.GetPatientByUuidAsync(uuid);
+            var patient = await _unitOfWork.PatientRepository.GetPatientByUuidAsync(uuid);
 
             if (patient == null)
             {
@@ -105,7 +112,7 @@ namespace ClinicManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                var patient = await _patientRepository.GetPatientByUuidAsync(patientDTO.Uuid);
+                var patient = await _unitOfWork.PatientRepository.GetPatientByUuidAsync(patientDTO.Uuid);
 
                 if (patient == null)
                 {
@@ -117,7 +124,7 @@ namespace ClinicManagementSystem.Controllers
                 patient.DateOfBirth = patientDTO.DateOfBirth;
                 patient.Gender = patientDTO.Gender;
 
-                await _patientRepository.UpdatePatientAsync(patient);
+                await _unitOfWork.PatientRepository.UpdatePatientAsync(patient);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -131,7 +138,7 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(string uuid)
         {
-            var patient = await _patientRepository.GetPatientByUuidAsync(uuid);
+            var patient = await _unitOfWork.PatientRepository.GetPatientByUuidAsync(uuid);
 
             if (patient == null)
             {
@@ -159,14 +166,14 @@ namespace ClinicManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(string uuid)
         {
-            var patient = await _patientRepository.GetPatientByUuidAsync(uuid);
+            var patient = await _unitOfWork.PatientRepository.GetPatientByUuidAsync(uuid);
 
             if (patient == null)
             {
                 return NotFound();
             }
 
-            bool hasAppointments = await _patientRepository.HasAppointmentsAsync(patient.Id);
+            bool hasAppointments = await _unitOfWork.PatientRepository.HasAppointmentsAsync(patient.Id);
 
             if (hasAppointments)
             {
@@ -185,7 +192,7 @@ namespace ClinicManagementSystem.Controllers
                 return View("Delete", model);
             }
 
-            await _patientRepository.DeletePatientAsync(uuid);
+            await _unitOfWork.PatientRepository.DeletePatientAsync(uuid);
 
             return RedirectToAction(nameof(Index));
         }
